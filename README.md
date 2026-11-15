@@ -1,4 +1,1 @@
-<img width="934" height="702" alt="Captura de pantalla 2026-11-15 a la(s) 11 34 56 a m" src="https://github.com/user-attachments/assets/b43463ed-1455-4270-87ec-ffe6cecacff1" /><img width="1252" height="789" alt="Captura de pantalla 2026-11-15 a la(s) 11 34 17 a m" src="https://github.com/user-attachments/assets/602450a9-2a66-46bd-89b5-c03dbba9d077" />
-<img width="305" height="700" alt="Captura de pantalla 2026-11-15 a la(s) 11 34 30 a m" src="https://github.com/user-attachments/assets/cbc14d8d-510d-4815-be54-85548002e8f1" />
-<img width="935" height="706" alt="Captura de pantalla 2026-11-15 a la(s) 11 35 13 a m" src="https://github.com/user-attachments/assets/93dba8cf-d9dd-4f6e-a869-3116806e508a" />
-<img width="1256" height="778" alt="Captura de pantalla 2026-11-15 a la(s) 11 35 29 a m" src="https://github.com/user-attachments/assets/f33012c4-3684-44c7-a59b-f268cc0bfa21" />
+
