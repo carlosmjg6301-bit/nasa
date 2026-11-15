@@ -1,0 +1,56 @@
+Interfaz Egle
+La interfaz recibirá los datos fisiológicos obtenidos de las mediciones de la NASA previamente investigados. A partir de esos datos, la interfaz los analizará en tiempo real y los comparará con una baseline de los tripulantes calibrada al iniciar su estancia espacial, mismos que se consideran como datos iniciales con valores normales, de esta forma al sobrepasar un umbral se emitirán alertas tanto a la tripulación, al astronauta y al centro de comandos. 
+Datos para mostrar en la interfaz
+Blood Sugar:
+La glucosa en sangre se mide mediante un glucómetro que utiliza una muestra de sangre capilar obtenida mediante una punción en el dedo. La muestra entra en contacto con una tira reactiva que contiene una enzima, generalmente glucosa oxidasa o glucosa deshidrogenasa, que reacciona con la glucosa presente. Se produce una transferencia de electrones que genera una corriente eléctrica proporcional a la concentración de glucosa. El dispositivo recoge esta corriente mediante un electrodo, la convierte en una señal de voltaje y posteriormente utiliza un convertidor analógico-digital (ADC) para obtener datos digitales que pueden procesarse mediante un microcontrolador.
+Para calcular la concentración de glucosa se utiliza una relación de calibración entre la corriente eléctrica medida y la concentración conocida de glucosa. En un modelo simplificado, esta relación puede expresarse mediante la siguiente ecuación:
+G = (I - I0) / S
+Donde G representa la concentración de glucosa en mg/dL, I es la corriente medida por el electrodo, I0 es la corriente de referencia o de fondo y S es la sensibilidad del sensor. En dispositivos reales, la calibración puede incluir factores adicionales relacionados con la temperatura, el hematocrito y las características de la tira reactiva.
+También puede utilizarse una ecuación de calibración lineal:
+G = aV + b
+Donde V es el voltaje obtenido después del acondicionamiento de la señal, a es la pendiente de calibración y b es el desplazamiento u offset. Los coeficientes se determinan experimentalmente utilizando soluciones de glucosa de concentración conocida.
+Los valores normales de glucosa en ayunas se encuentran entre 70 y 99 mg/dL. Un valor inferior a 70 mg/dL indica hipoglucemia, mientras que uno inferior a 54 mg/dL representa hipoglucemia clínicamente significativa. Una concentración superior a 180 mg/dL puede utilizarse como umbral de alerta operativa, aunque su interpretación depende de cuándo comió el astronauta. Una glucosa en ayunas igual o superior a 126 mg/dL es un criterio diagnóstico de diabetes que requiere confirmación clínica.
+
+
+
+Blood preasure
+Se obtiene mediante un monitor electrónico con un brazalete inflable colocado alrededor del brazo. El sistema utiliza un transductor de presión para registrar los cambios de presión dentro del brazalete mientras se infla y desinfla. Durante este proceso, los latidos generan pequeñas oscilaciones de presión que son captadas por el sensor. La señal analógica se amplifica, se filtra para eliminar el ruido y se digitaliza mediante un convertidor ADC. Posteriormente, un algoritmo analiza las oscilaciones para estimar la presión sistólica y diastólica.
+El cálculo se realiza mediante el método oscilométrico. Primero se obtiene la amplitud de las oscilaciones correspondientes a cada nivel de presión del brazalete. Estas amplitudes forman una envolvente cuya amplitud máxima se utiliza para estimar la presión arterial media (MAP). La presión sistólica y diastólica se estiman identificando determinados porcentajes de esa amplitud máxima, mediante coeficientes que dependen del algoritmo del fabricante.
+La presión arterial media también puede aproximarse matemáticamente mediante:
+MAP = DBP + (SBP - DBP) / 3
+Donde MAP es la presión arterial media, SBP es la presión sistólica y DBP es la presión diastólica. Esta aproximación se utiliza principalmente cuando la frecuencia cardiaca y el ritmo son relativamente normales.
+Por ejemplo, si un astronauta presenta una presión arterial de 120/80 mmHg:
+MAP = 80 + (120 - 80) / 3
+MAP = 80 + 13.33
+MAP = 93.33 mmHg
+La presión arterial media estimada es de aproximadamente 93.33 mmHg. Esta ecuación calcula la presión media aproximada, pero no permite obtener por sí sola las presiones sistólica y diastólica, las cuales se estiman a partir de las oscilaciones registradas por el brazalete.
+Una presión arterial inferior a 120/80 mmHg se considera normal en adultos. Para el sistema de monitorización se establece una alerta preventiva cuando la presión alcance o supere 140/90 mmHg, y una alerta crítica cuando supere 180/120 mmHg. También se recomienda vigilar valores sistólicos inferiores a 90 mmHg, que pueden indicar hipotensión. Estos son criterios clínicos de referencia.
+Temperatura corporal:
+La temperatura corporal puede medirse mediante sensores térmicos colocados en contacto con el cuerpo. Para aplicaciones biomédicas se pueden utilizar termistores, sensores de resistencia (RTD) o sensores especializados de temperatura central. En el espacio, la NASA y sus colaboradores han investigado dispositivos portátiles no invasivos para monitorizar la temperatura central de los astronautas. Un ejemplo es el experimento Thermolab, realizado en la Estación Espacial Internacional, que utilizó un sensor térmico especializado para registrar la temperatura central durante el reposo y el ejercicio. Posteriormente, la investigación Thermo-Mini desarrolló sensores portátiles en forma de banda para facilitar la monitorización prolongada.
+Para obtener los datos mediante un termistor, el sensor modifica su resistencia eléctrica en función de la temperatura. Un circuito divisor de voltaje permite transformar ese cambio de resistencia en una señal de voltaje que posteriormente se digitaliza mediante un ADC. Conociendo el voltaje medido y las características del sensor, se calcula su resistencia y se convierte a temperatura mediante una ecuación de calibración.
+Una de las ecuaciones utilizadas para este proceso es la de Steinhart-Hart:
+1 / T = A + B * ln(R) + C * [ln(R)]^3
+Donde T es la temperatura absoluta en kelvin, R es la resistencia del termistor en ohmios y A, B y C son coeficientes obtenidos durante la calibración del sensor.
+Para expresar el resultado en grados Celsius se utiliza:
+T(°C) = T(K) - 273.15
+Por ejemplo, si después de aplicar la ecuación de calibración se obtiene una temperatura de 310.15 K:
+T(°C) = 310.15 - 273.15
+T(°C) = 37 °C
+De esta manera, el sistema convierte una variación de resistencia eléctrica en una temperatura corporal que puede visualizarse y almacenarse digitalmente. Los coeficientes deben determinarse para el sensor utilizado mediante mediciones de referencia a distintas temperaturas.
+La temperatura corporal de referencia suele encontrarse entre 36.1 y 37.2 °C, aunque depende de la persona, el sitio de medición y la actividad física. Para el sistema se puede establecer una alerta preventiva a partir de 37.5 °C y una alerta por posible fiebre a partir de 38 °C. Una temperatura inferior a 35 °C representa un posible estado de hipotermia y requiere atención inmediata. En el espacio debe tenerse especial cuidado al interpretar estos resultados, porque las investigaciones de Thermolab encontraron que la temperatura central puede aumentar más rápidamente durante el ejercicio en microgravedad y tardar más en regresar a sus valores de reposo.
+
+
+
+
+
+Personal Radiation:
+-Shown in mSv/h (miliSieverts by hour) typically in the range of 0.02 – 0.04 mSv/h or (~0.5 – 1.0 mSv/day) 
+-Mathematical relation: The MDU dosimeter measures µGy/h which can be converted to mSv/h for the thresholds made by NASA to work by:
+Dose Equivalent (mSv) = [ Absorbed Dose Rate (µGy/h) × Time (h) ÷ 1,000 ] × Q(LET) 
+being Q(LET) biological quality factor 
+-If the display passes 0.05 – 0.08 mSv/h (~1.2 – 2.0 mSv/day) the variable will warn with a yellow tone, meaning for the astronaut to be concerned about the radiation absorbed. On the other hand, if it is shown > 0.50 – 10+ mSv/h, the display will give a warning of radiation exceeded.
+-Either warn will make health recommendations as move all crew members to the central core module to prevent more radiation to be absorbed when cabin dose rate exceeds 1.0 mSv/h or Remain inside the shielded zone until MDU dose rates drop below 0.10 mSv/h.
+Other protocols to ensure the measurements are being taken correctly are confirming MDU is worn on the torso or verify Fast Mode activation: ensure the MDU switches from 90-second nominal intervals to 20-second sampling so the dashboard tracks rapid flux changes in real time. 
+
+
+

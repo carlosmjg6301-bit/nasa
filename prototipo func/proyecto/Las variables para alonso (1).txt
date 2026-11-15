@@ -1,0 +1,200 @@
+Atmósfera del hábitat
+Presión total
+Se muestra: kPa, con psia entre paréntesis. Nominal 101.3 kPa (14.7 psia).
+Relación: se muestra también la tasa de cambio (kPa/min), porque una fuga se ve antes en la pendiente que en el valor.
+Estados (propuesta): verde 99–102 kPa, amarillo 96–99 o 102–103 kPa, rojo bajo 96 o sobre 103 kPa. Con 103 kPa como tope y el rango tolerable hasta 34.5 kPa para exposición indefinida, estos umbrales son de tu diseño, no de NASA.
+Acciones: revisar escotillas y sellos, y localizar la fuga si la pendiente es negativa sostenida.
+
+Oxígeno y gas diluyente
+Se muestra: ppO2 en kPa y % en volumen, más el % de diluyente.
+Relación: ppO2 = fracción de O? × presión total. Con 21% y 101.3 kPa da = 21.3 kPa aproximadamente. Diluyente = 100 – O2 – CO2 ? otros, y debe ser mayor o igual a 30%.
+Estados (propuesta, pendiente de la Tabla 6.2-1): verde 20.0–23.0%, amarillo 19.5–20.0 o 23.0–23.5%, rojo fuera de 19.5–23.5%. Esos extremos son la referencia de OSHA.
+Acciones: con O2 bajo, revisar el generador de oxígeno. Con O2 alto, avisar riesgo de incendio y restringir fuentes de ignición.
+
+CO2
+Se muestra: mmHg, con el promedio móvil de 1 h como valor principal. El instantáneo va en pequeño.
+Estados (propuesta): verde bajo 2.4 mmHg (80% del límite), amarillo 2.4–3.0, rojo sobre 3.0 mmHg de promedio horario. El rango normal de remoción de la ISS ronda 2.0–3.9 mmHg. 
+Acciones: aumentar ventilación, revisar el depurador y reducir el ejercicio intenso si sube.
+Verificación: comparar los sensores de distintos módulos y alertar si divergen demasiado.
+
+Temperatura y humedad
+Se muestra: °C y %HR, como un punto sobre una gráfica con la zona permitida sombreada, entre 18 °C/75% y 27 °C/25%.
+Estados (propuesta): verde dentro de la zona, amarillo a menos de 10% del borde, rojo fuera.
+Acciones: ajustar el flujo de aire o el enfriamiento, y avisar de condensación si la humedad es alta.
+B. Zona de sueño
+
+Ruido
+Se muestra: dBA con el nivel NC equivalente. El recomendado para dormir es cercano a NC-30, y las zonas de sueño de la ISS promedian NC-50. 
+Estados (propuesta): verde hasta NC-30, amarillo NC-30 a NC-40, rojo sobre NC-40. Cambia por el valor del límite V2 6079 cuando lo confirmes.
+Acciones: sugerir tapones o auriculares de aislamiento y revisar ventiladores.
+
+Iluminación
+Se muestra: lux y temperatura de color, con una franja de horario circadiano.
+Estados: sin cifras confirmadas (V2 8051 y 8055), así que deja los umbrales como configurables. El interfaz solo marca “luz fuera de horario de sueño”.
+Acciones: atenuar, activar el filtro cálido y programar el amanecer gradual.
+
+Temperatura y CO2 en sueño
+Reutilizan el rango de 18–27 °C y el límite de 3 mmHg, medidos dentro del módulo de sueño.
+El mosaico se une con el sueño de la pulsera Archer (horas y eficiencia), para ver si una mala noche coincide con ruido, calor o CO2 alto.
+
+C. Radiación personal
+Se muestra y cómo se calcula
+Dosis equivalente en mSv/h, con el equivalente diario entre paréntesis. La conversión de tu texto es correcta: µGy/h × h ÷ 1,000 × Q(LET).
+Junto a eso, una barra de dosis acumulada contra el límite de carrera. El límite de carrera de NASA es 600 mSv y el de corto plazo es 250 mSv. Las alertas de tasa avisan del momento, y la barra acumulada es la que realmente limita la misión. 
+
+Estados (los del usuario, con una nota)
+Verde: 0.02–0.04 mSv/h (aproximadamente 0.5–1.0 mSv/día).
+Amarillo: 0.05–0.08 mSv/h (aproximadamente 1.2–2.0 mSv/día).
+Rojo: mayor a 0.50 mSv/h.
+Nota: en la ISS la dosis efectiva típica es de 0.2 a 0.5 mSv/día, es decir, de 0.008 a 0.021 mSv/h. Tu verde queda por encima de eso. Si tu fuente habla de espacio profundo, dilo en el reporte. 
+
+Acciones
+Con tasa de cabina mayor a 1.0 mSv/h: mover a todos al módulo central de más blindaje.
+Permanecer ahí hasta que baje de 0.10 mSv/h. Tu histéresis (entrar a 1.0, salir a 0.10) evita que la alerta parpadee.
+Un detalle de coherencia: el rojo empieza en 0.5 mSv/h pero la acción de refugio en 1.0. Define si entre 0.5 y 1.0 es “alerta sin refugio” o ajusta los números.
+
+Verificaciones
+
+Hay que confirmar que el dosímetro esté portado correctamente. El dosímetro activo de NASA (CAD) se lleva en el bolsillo, así que revisa si tu texto dice “torso” por una razón concreta. 
+Modo rápido: pasar de muestreo de 90 s a 20 s y mostrar un indicador “FAST” en el tablero.
+No encontré confirmación del nombre MDU ni de los intervalos 90 s / 20 s. Los dosímetros que sí aparecen en mis búsquedas son el CAD, el HERA y el EAD-MU de ESA, así que confirma esa fuente antes de citarla.
+
+D. Caminata espacial (EVA)
+Presión del traje
+Se muestra: kPa y psi, nominal 29.6 kPa (4.3 psi), junto con la tasa de caída (psi/min).
+Estados (propuesta): amarillo con desviación mayor o igual a 5% del valor de ajuste, rojo mayor o igual a 10% o caída sostenida.
+Acciones: abortar la EVA y regresar a la esclusa si hay caída sostenida.
+
+Gradiente térmico
+Se muestra: un indicador de fase orbital (sol/sombra) con cuenta regresiva y la temperatura externa estimada, de aproximadamente ?157 a +121 °C.
+Es informativo: el cambio es esperado en cada órbita, así que no debe disparar alarma por sí solo. Las alertas deben ir sobre la temperatura interna del traje.
+
+Pre-respiración y descompresión
+Se muestra: un cronómetro de pre-respiración contra el protocolo elegido, junto con SpO2 y un checklist de síntomas de DCS. Un protocolo histórico fue de 4 h de pre-respiración. Hazlo configurable. 
+Acción: bloquear la salida de EVA hasta completar el protocolo.
+
+Parámetros psicológicos y relacionados al estado de ánimo
+Depresión
+PHQ-9 (0–27)
+Se muestra: puntaje total, nivel de gravedad en texto y la tendencia de las últimas semanas.
+Estados: verde 0–4, amarillo 5–9 (leve) y 10–14 (moderada), rojo 15–27. Un puntaje ? 10 dispara la consulta clínica, como indica tu documento.
+Regla aparte, ítem 9: cualquier respuesta mayor que 0 abre una alerta inmediata que no se promedia ni se retrasa. Debe ser un aviso persistente que exige confirmación de que el protocolo se activó, y que no se pueda ocultar sin registro.
+Acciones: contacto con el médico de vuelo o el protocolo local, y en modo offline, el procedimiento escrito y a quién avisar a bordo.
+Verificación: confirmar que el cuestionario se completó entero antes de calcular el total.
+
+BDI-II (0–63)
+Se muestra: puntaje y gráfica semanal. Su rango más amplio hace visibles los cambios pequeños.
+Estados: verde 0–13, amarillo 14–28, rojo 29–63.
+Alerta de tendencia (propuesta): amarillo si sube 3 semanas seguidas, aunque no cruce umbral.
+Ansiedad
+
+GAD-7 (0–21)
+Se muestra: puntaje y nivel (leve 5, moderado 10, severo 15).
+Estados: verde 0–4, amarillo 5–9, rojo mayor o igual a 10, que pide evaluación clínica.
+Contexto: en la tarjeta se puede sumar un campo opcional para anotar la carga de trabajo o el conflicto de tripulación de esa semana.
+Ánimo
+
+POMS y TMD
+Se muestra: barras para tensión, depresión, ira, fatiga, confusión y vigor, más el TMD.
+Relación: TMD = suma de las cinco escalas negativas ? vigor.
+Estados (propuesta): verde dentro de ±1 DE de la línea base, amarillo entre 1 y 2 DE, rojo sobre 2 DE o 1 DE sostenida varias semanas.
+Verificación: mostrar si la línea base viene de datos pre-vuelo o de las primeras semanas en órbita, porque cambia cuánto confiar en la alerta.
+Sueño
+
+PSQI (0–21)
+Se muestra: puntaje global, con alerta si pasa de 5 (mal sueño).
+Estados: verde menor o igual a 5, rojo mayor a 5.
+Duración por actigrafía (Archer)
+Se muestra: horas por noche como barras, con una línea en 7 h.
+Estados (propuesta): amarillo con 2 noches seguidas bajo 7 h, rojo con 3 o más.
+Verificación cruzada: una insignia “desacuerdo” cuando el PSQI es malo pero la actigrafía es normal, o al revés. Tu documento señala que esa discrepancia ya es información.
+Enlace: si el sueño cae, el tablero abre el módulo ambiental de sueño (ruido, luz, temperatura, CO2).
+Vigilancia
+
+PVT
+Se muestra: tiempo medio de reacción y número de lapsos (respuestas mayor a 500 ms), contra su línea base.
+Estados (propuesta): amarillo con lapsos o reacción 1 DE peor que su normal, rojo con 2 DE o más.
+Uso operativo: una aplicación antes y otra después de cada EVA, con un comparador lado a lado. Si el resultado es rojo antes de salir, se recomienda revisar la EVA con el médico.
+
+Estrés fisiológico
+Cortisol salival
+Se muestra: puntos de muestra con la hora del día sobre la banda normal de su ritmo diario.
+Relación: la comparación es contra muestras del mismo horario, nunca entre horas distintas.
+Estados (propuesta): amarillo si dos muestras seguidas quedan sobre su banda, rojo si la elevación se sostiene por semanas.
+Enlace: se cruza con los módulos de inmunidad y de infecciones virales latentes.
+Conducta social
+
+Comunicación y contacto social
+Se muestra: un índice compuesto, con llamadas a tierra, familia y tiempo social semanal con la tripulación.
+Estados (propuesta): caída de más de 30% contra su promedio de 2 semanas es amarillo, y rojo si dura más de 2 semanas. No hay cifra fija, así que ese porcentaje es tuyo.
+Nota: el tono de las llamadas es lo más difícil de medir y puede quedar fuera de una primera versión.
+
+Parámetros relacionados con el sueño
+
+Duración total
+Se muestra: horas por noche como barras, con líneas en 7, 6 y 5 h, y un contador de noches consecutivas bajo la banda.
+Estados: verde mayor o igual a 7 h, amarillo 6–7, naranja 5–6 (alerta), rojo menor a 5 (crítico).
+Deuda de sueño (propuesta): suma acumulada de (7 ? horas dormidas) de las últimas noches, para mostrar el efecto de la racha.
+Acciones: con una racha en amarillo, sugerir proteger la ventana de sueño. Con rojo, escalar al médico de vuelo y considerar reducir la carga de trabajo.
+
+Eficiencia
+Se muestra: porcentaje, junto a una barra de “tiempo en cama vs tiempo dormido”.
+Relación: eficiencia = tiempo dormido ÷ tiempo en cama × 100.
+Estados: verde mayor o igual a 85%, amarillo 75–85%, rojo menor a 75%.
+Acciones: cuando baja, la interfaz abre una capa ambiental de esa noche con ruido, luz, temperatura y CO2 del módulo de sueño. Así se ve si hay una causa en el entorno.
+
+WASO
+Se muestra: minutos despiertos tras dormirse, contra su línea base personal.
+Estados: verde dentro de su normal, rojo con un aumento mayor a 30% sobre la línea base.
+Verificación: mostrar cuántas noches respaldan la línea base. Con pocas noches, la alerta lleva la etiqueta “línea base provisional”.
+
+Porcentaje de REM
+Se muestra: porcentaje de REM y cambio contra su línea base.
+Estados: rojo con una caída mayor a 25% sostenida.
+Aviso importante: tu documento aclara que un actígrafo de muñeca no mide fases del sueño. Esa tarjeta debe llevar una insignia “simulado” o el nombre del sensor alterno, para no presentar como medido algo que Archer no puede medir.
+
+Desfase respecto a la ventana nominal
+Se muestra: horas de desfase en el inicio y en el despertar.
+Estados (propuesta, a partir de tu rango “1 a 2 h”): amarillo con más de 1 h, rojo con más de 2 h o desfase creciente varios días.
+Acciones: proponer exposición programada a la luz y revisar la iluminación y el horario de trabajo, porque son las contramedidas que cita tu texto.
+Vigilancia y tiempo de reacción
+Se muestra: tiempo de reacción contra su línea base, con la fatiga auto informada al lado.
+Estados: rojo con un aumento sostenido sobre la línea base.
+Insignia de discrepancia: si el astronauta dice sentirse bien pero el rendimiento empeora, el tablero la muestra. Tu documento recalca que los dos datos pueden no coincidir.
+Se comparte con el módulo de salud mental, así que conviene que sea un solo dato y no dos tarjetas distintas.
+
+Verificaciones de los datos
+Revisar que Archer se haya usado la noche entera, y marcar la noche como dato incompleto si faltan horas, sin calcular las bandas con ella.
+Si falta más de una noche, mostrar el hueco en la tendencia en vez de interpolar.
+
+
+George, S. (2025). Deep space radiation measurements and crew radiation protection for the NASA Artemis program [Seminar slides]. NASA Johnson Space Center, Space Radiation Analysis Group. https://ntrs.nasa.gov/api/citations/20250002757/downloads/Slides_Seminar_2025.pdf
+
+Gernhardt, M. L. (2013). [Título del capítulo 5.4, operaciones de EVA, por confirmar]. NASA. https://nasa.gov/wp-content/uploads/2023/03/gernhardt-eva-ops-chp-5.4-2013.pdf 
+
+Mirion Technologies. (n.d.). From RAM to CAD: The evolution of astronaut radiation monitoring through Artemis II. https://www.mirion.com/discover/knowledge-hub/articles/stories/from-ram-to-cad-the-evolution-of-astronaut-radiation-monitoring-through-artemis-ii
+
+NASA. (n.d.). 6.0 Natural and induced environments, NASA-STD-3001 Volume 2. https://www.nasa.gov/reference/6-0-natural-and-induced-environments-vol-2
+
+NASA. (n.d.). Assessment and mitigation	of the	effects of noise on habitability in deep space environments: report on non-auditory  effects of noise (NTRS 20190025346). https://ntrs.nasa.gov/api/citations/20190025346/downloads/20190025346.pdf
+
+NASA Office of the Chief Health and Medical Officer. (n.d.). Carbon dioxide (OCHMO-TB-004). https://www.nasa.gov/ochmo-tb-004-carbon-dioxide-2/
+
+NASA Office of the Chief Health and Medical Officer. (n.d.). Environmental control and life support system (ECLSS) technical brief. https://www.nasa.gov/wp-content/uploads/2023/07/eclss-technical-brief-ochmo.pdf
+
+NASA Office of the Chief Health and Medical Officer. (n.d.). Radiation protection technical brief. https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf
+
+NASA Office of the Chief Health and Medical Officer. (2021, January 5). Sleep accommodations (OCHMO-TB-041, Rev. A). https://www.nasa.gov/wp-content/uploads/2023/03/sleep-accomodations-technical-brief-ochmo.pdf
+
+NASA Office of the Chief Health and Medical Officer. (2023). Behavioral health mishaps (OCHMO-TB-014). https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-014-behavioral-health-mishaps.pdf
+
+NASA Office of the Chief Health and Medical Officer. (2023, November 14). Environmental control & life support system (ECLSS): Human-centered approach (OCHMO-TB-002, Rev. B). https://nasa.gov/wp-content/uploads/2023/12/ochmo-tb-002-eclss.pdf
+
+Orbital Radar. (n.d.). How spacesuits work. https://orbitalradar.com/spacesuits/how-spacesuits-work
+
+? Space agency-specific standards for crew dose and risk assessment of ionising radiation exposures for the International Space Station. [Autores, revista y año por confirmar]. PubMed Central. https://pmc.ncbi.nlm.nih.gov/articles/PMC10919966 ?
+
+Space habitats life support. (n.d.). cheatsheets.davidveksler.com. https://cheatsheets.davidveksler.com/space-habitats-life-support.html
+
+
+

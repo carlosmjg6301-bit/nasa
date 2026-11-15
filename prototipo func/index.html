@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EGLE MONITOR</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+:root{--desk:#263849;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--desk:#16222e}}
+:root[data-theme="dark"]{--desk:#16222e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--desk);color:#111;font-family:Helvetica,Arial,sans-serif}
+.bv{background:#c4c4c4;border:2px solid;border-color:#fff #4b5563 #4b5563 #fff}
+.sk{border:2px solid;border-color:#4b5563 #fff #fff #4b5563}
+.scr{background:#0f172a;color:#e2e8f0}.sheet{background:#f8fafc;color:#0f172a}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.tb{display:flex;align-items:center;gap:6px;padding:2px 6px;background:#007a87;color:#fff;font-weight:700;font-size:14px;border-bottom:2px solid #004b54}
+.tb.s{background:#64748b;border-color:#334155}
+.cs{width:13px;height:13px;background:#c4c4c4;border:1px solid;border-color:#fff #333 #333 #fff;flex:none}
+.led{display:inline-block;width:11px;height:11px;border:1px solid #000;flex:none}
+@keyframes b{50%{opacity:.25}}.bl{animation:b 1.2s steps(2) infinite}
+@media(prefers-reduced-motion:reduce){.bl{animation:none}}
+button{font-family:inherit;cursor:pointer}button:focus-visible{outline:2px dotted #000;outline-offset:1px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef}=React;
+const C=["#16a34a","#d97706","#dc2626"],CB=["#4ade80","#fbbf24","#f87171"],TAG=["[NOMINAL]","[PREVENTIVE WARNING]","[CRITICAL ALERT]"],HT=["[OK]","[WARNING]","[CRITICAL]"],LV=["GREEN","YELLOW","RED"];
+const num=v=>Array.isArray(v)?v[0]:v;
+const zl=(sc,v)=>(sc[2].find(z=>v>=z[0]&&v<z[1])||sc[2][v<sc[0]?0:sc[2].length-1])[2];
+const SR=[0,1.6,[[0,0.04,0],[0.04,0.5,1],[0.5,1.6,2]],1];
+const V=[
+{id:"glu",name:"Blood Sugar",info:"Measures glucose in blood/interstitial fluid via a subcutaneous sensor (CGM). Monitored because microgravity causes muscle loss and insulin resistance, which can lead to sudden low energy (hypoglycemia) or high blood sugar.",unit:"mg/dL",vals:[88,64,48],fmt:v=>v,sc:[30,220,[[30,54,2],[54,70,1],[70,126,0],[126,181,1],[181,220,2]]],br:v=>v<70?"a":"b",rng:"70–99 mg/dL (up to 125 post-meal). Yellow 54–69 or 126–180. Red <54 or >180.",eq:"G = (I − I0) / S   or   G = aV + b",sub:()=>"Hypoglycemia <70 mg/dL · clinically significant <54 · alert >180 · DKA risk ≥250",
+P:[["Continue routine capillary/interstitial glucose monitoring.","Keep scheduled caloric intake."],
+["a|Low (<70): pause physical activity, secure body position and re-test.","a|If conscious and able to swallow, ingest 15 g of fast-acting carbohydrates (glucose tablets or gel). Re-test after 15 minutes.","a|If still <70 mg/dL, repeat the carbohydrates and request medical assistance.","b|High (126–180): log last meal time, re-check the reading and monitor the trend."],
+["a|Severe low (<54): immediate attention required. If unconscious or unable to swallow, give NO oral food or liquids.","a|Activate the medical emergency protocol; use glucagon only per the approved mission procedure.","b|High (>180): suspend intense exercise, re-check the reading and log last meal.","b|Keep hydration adequate per medical order and alert the crew medical officer.","b|If ≥250 mg/dL: check ketones when equipment is available."]],
+esc:"Nausea, vomiting, abdominal pain, abnormal breathing or confusion (possible DKA), or loss of consciousness: urgent medical care."},
+{id:"bp",name:"Blood Pressure",info:"Measures the force of blood against artery walls (Systolic/Diastolic and Mean Arterial Pressure). Monitored because in zero gravity fluids shift toward the head, and returning to gravity can cause dizziness or fainting.",unit:"mmHg",vals:[[116,76],[144,92],[186,122]],fmt:v=>v[0]+"/"+v[1],sc:[70,200,[[70,90,1],[90,120,0],[120,180,1],[180,200,2]]],lv:v=>v[0]>180||v[1]>120?2:v[0]<90||v[0]>=120||v[1]>=80?1:0,br:v=>v[0]<90?"a":"b",rng:"<120/80 mmHg with SYS ≥90. Yellow 120–139/80–89, ≥140/90 or SYS <90. Red >180/120.",eq:"MAP = DBP + (SBP − DBP) / 3",sub:v=>"MAP "+(v[1]+(v[0]-v[1])/3).toFixed(1)+" mmHg (oscillometric cuff)",
+P:[["Hemodynamics stable.","Maintain scheduled Lower-Body Negative Pressure (LBNP) conditioning."],
+["a|Low (SYS <90): stop activity, secure position, rest a few minutes and re-measure.","a|Check for dizziness, weakness, blurred vision, nausea or faintness.","a|Microgravity rule: do NOT automatically elevate the legs or lie flat; use the spacecraft-approved safety position.","a|Hydration and electrolytes only per medical order. If symptoms persist or pressure keeps falling, request medical assistance.","b|High (≥140/90): stop exercise, rest, check cuff fit and re-measure.","b|If values stay high on consecutive readings, inform the crew medical officer to review stress, recent exercise or cardiovascular causes."],
+["Re-measure after at least 1 minute.","If still >180/120 mmHg, request immediate medical assistance.","If chest pain, shortness of breath, visual changes, sudden weakness or severe headache occur, activate the emergency protocol at once without waiting for a new reading."]],
+esc:"Chest pain, shortness of breath, visual changes, sudden weakness, severe headache, fainting or confusion: emergency protocol now."},
+{id:"hr",name:"Heart Rate",info:"Measures heartbeats per minute (bpm) via ECG/optical sensors. Shows how hard the heart is working during rest, exercise, or spacewalks (EVA).",unit:"bpm",vals:[68,112,138],fmt:v=>v,sc:[30,150,[[30,42,2],[42,50,1],[50,100,0],[100,131,1],[131,150,2]]],rng:"50–100 bpm. Yellow 42–49 or 101–130. Red <42 or >130.",eq:"HR (bpm) = 60 / RR interval (s)",sub:(v,p,crew)=>`HRmax = ${220-crew.age} bpm · 85% EVA threshold = ${Math.round((220-crew.age)*0.85)} bpm`,
+P:[["Normal rhythm relative to the pre-flight supine baseline.","Cleared for resistive and aerobic exercise."],
+["Verify ECG / optical sensor contact.","Pause strenuous activity and watch the post-exercise heart-rate recovery.","Log hydration status."],
+["Perform an immediate diagnostic ECG with the onboard medical kit.","Check blood pressure and SpO₂; restrict physical exertion.","Alert the crew medical officer."]],
+esc:"Chest pain, fainting, severe shortness of breath or irregular rhythm with symptoms: activate the emergency protocol."},
+{id:"spo2",name:"Blood Oxygen (SpO₂)",info:"Percentage of oxygen carried by red blood cells in the cabin. Detects early hypoxia (low oxygen) if cabin pressure or oxygen drops.",unit:"%",vals:[98,93,88],fmt:v=>v,sc:[80,100,[[80,90,2],[90,95,1],[95,100.1,0]]],rng:"97–100% nominal IVA (14.7 psia) or 94–96% Artemis exploration (8.2 psia / 34% O₂). Yellow 90–94%. Red <90%.",eq:"PIO₂ = (PB − 47) × FIO₂ (Normoxia = 149 mmHg)",sub:v=>v>=95?"Normoxic / Exploration nominal (OCHMO-TB-003)":v>=90?"Mild hypobaric hypoxia (~122–127 mmHg PIO₂)":"CRITICAL HYPOXIA (<=100 mmHg PIO₂)",
+P:[["Maintain the cabin atmosphere monitoring schedule.","Keep the approved oxygen and pressure configuration unchanged."],
+["Stop strenuous activity and verify pulse-oximeter contact.","Check cabin ppO₂ and repeat after paced breathing.","Notify the crew medical officer if the value remains below 95%."],
+["Abort EVA or high-risk activity and return to the pressurized cabin.","Use 100% oxygen according to the approved emergency procedure.","Establish immediate medical communication with Mission Control."]],
+esc:"SpO₂ below 94% indicates mild hypoxia; below 90% is critical hypoxia with possible visual and cognitive impairment per NASA OCHMO-TB-003."},
+{id:"rad",name:"Personal Radiation",info:"Measures ionizing space radiation absorbed by the astronaut's body (mSv/h) via the portable MDU dosimeter to protect bone marrow, organs, and DNA.",unit:"mSv/h",vals:[0.03,0.18,1.35],cum:[41,118,236],fmt:v=>v.toFixed(2),sc:SR,rng:"0.02–0.04 mSv/h (~0.5–1.0 mSv/day). Yellow 0.05–0.50. Red >0.50 (shelter at >1.0).",eq:"H (mSv/h) = D (µGy/h) × Q(LET) / 1000",sub:(v,p,crew)=>(v*24).toFixed(1)+" mSv/day · cumulative "+(crew?.telemetry?.cum??41)+" mSv",
+P:[["Standard 90-second dosimeter sampling.","Verify the dosimeter is worn correctly (torso/pocket) and log the cumulative dose against the 250 mSv short-term and 600 mSv career limits."],
+["Check the space-weather / Solar Particle Event (SPE) forecast with Mission Control.","Verify active dosimeter telemetry is operational."],
+["Switch the dosimeter to FAST mode (20-second sampling).","0.50–1.0 mSv/h: suspend work in lightly shielded modules.","Above 1.0 mSv/h: relocate ALL crew to the heavily shielded central core module and stay until the rate is below 0.10 mSv/h.","Alert the crew medical officer (CMO); apply antioxidant and omega-3 nutritional countermeasures.","Track organ limits (BFO / CNS / Lens); prepare evacuation to a Definitive Medical Care Facility (DMCF) if Acute Radiation Syndrome exceeds onboard capability."]],
+esc:"Nausea, vomiting, skin redness or marked fatigue after a dose spike: suspect Acute Radiation Syndrome and alert the CMO."},
+{id:"sleep",name:"Sleep Hours",info:"Tracks hours slept and sleep quality via wrist actigraphy. Space stations experience 16 sunrises a day, disrupting biological clocks and causing fatigue errors.",unit:"hrs",vals:[7.6,6.1,4.2],fmt:v=>v.toFixed(1),sc:[0,10,[[0,5,2],[5,7,1],[7,10.1,0]]],rng:"≥7.0 hrs, efficiency ≥85%, PSQI ≤5. Yellow 5.0–6.9. Red <5.0.",eq:"Efficiency (%) = time asleep / time in bed × 100",sub:(v,p)=>"Efficiency "+[91,80,68][p]+"% · PSQI "+[3,7,12][p]+" · sleep debt "+Math.max(0,7-v).toFixed(1)+" h",
+P:[["Restorative sleep.","Keep a fixed wake/sleep schedule and blue-depleted evening lighting."],
+["Protect tonight’s sleep window by deferring late tasks.","Track cumulative sleep debt (7 − hours slept) and avoid late caffeine.","Check sleep-berth ventilation and noise (NC-30 or lower)."],
+["Alert the crew medical officer.","Restrict high-risk tasks and EVA; run a Psychomotor Vigilance Test (PVT) to check for hidden fatigue.","Inspect sleep-module CO₂, temperature and noise.","Apply scheduled bright-light therapy on waking."]],
+esc:"Microsleeps or severe fatigue before an EVA or docking: stand down from critical tasks."},
+{id:"temp",name:"Body Temperature",info:"Measures core and skin temperature (°C). In microgravity, warm air does not rise naturally, making it harder for the body to cool down during exercise or fever.",unit:"°C",vals:[36.8,37.7,38.4],fmt:v=>v.toFixed(1),sc:[33,41,[[33,35,2],[35,36.1,1],[36.1,37.5,0],[37.5,38,1],[38,41,2]]],br:v=>v<36.1?"a":"b",rng:"36.1–37.4 °C. Yellow 35.0–36.0 or 37.5–37.9. Red ≥38.0 or <35.0.",eq:"1/T = A + B·ln(R) + C·(ln R)³  (Steinhart-Hart)",sub:()=>"Thermistor with ADC, core-temperature sensor",
+P:[["Core thermoregulation nominal.","Keep standard cabin airflow and Liquid Cooling Garment (LCG) settings during exercise."],
+["b|High (37.5–37.9 °C): pause exertion, rest and re-measure after cooldown. Microgravity cuts sweat evaporation by ~11% and delays cooling; watch for “space fever”.","a|Low (35.0–36.0 °C): check sensor contact and calibration, and add thermal layers."],
+["b|Fever (≥38.0 °C): alert the crew medical officer to evaluate fever, infection or thermal dysregulation.","b|Hydrate, stop exertion and move to a cool zone.","b|At ≥40.0 °C, or with confusion, fainting, dyspnea or seizures: immediate medical emergency.","a|Hypothermia (<35.0 °C): stop activity, secure position and verify the sensor. Wear thermal garments in a controlled-temperature area.","a|Sip warm fluids only if conscious and able to swallow. NO direct heat sources or rapid rewarming."]],
+esc:"Temperature near or above 40 °C, confusion, fainting, dyspnea, seizures, or poor coordination when cold: medical emergency."}];
+const H=[
+{id:"ct",name:"CABIN TEMPERATURE",info:"Air temperature inside the spacecraft modules (18–27 °C nominal). Keeps the crew comfortable and prevents moisture condensation on electronics.",unit:"°C",vals:[22.4,27.8,30.5],fmt:v=>v.toFixed(1),sc:[12,34,[[12,16,2],[16,18,1],[18,27.01,0],[27.01,29.01,1],[29.01,34,2]]],rng:"Safe 18.0–27.0 °C (best 20.0–25.0). Caution 16.0–17.9 or 27.1–29.0. Danger <16.0 or >29.0.",x:()=>"",
+t:[["Safe & Comfortable",["Cabin temperature is ideal for crew health and work.","Keep automatic thermal control and dew-point monitoring on."]],["Caution: Temp Drifting",["Adjust air vents and cooling valves.","Check cabin walls for moisture and condensation.","Re-check the reading in 15 minutes."]],["DANGER: Unsafe Temperature",["Redirect electronics heat and set cooling and dehumidifiers to maximum.","Adjust crew thermal clothing immediately.","Stay alert for heat stress or chills until back within 18–27 °C."]]]},
+{id:"co2",name:"CARBON DIOXIDE (CO₂)",info:"Concentration of exhaled CO₂ gas in cabin air (mmHg). Without gravity, pockets of CO₂ can build up around astronauts, causing headaches, fatigue, or confusion if scrubbers fail.",unit:"mmHg",vals:[1.9,2.7,3.4],fmt:v=>v.toFixed(1),sc:[0,4.5,[[0,2.4,0],[2.4,3.01,1],[3.01,4.5,2]]],rng:"1-hour average. Safe <2.4. Caution 2.4–3.0. Danger >3.0 mmHg.",x:()=>"Limit: 3.0 mmHg (1-hour average)",
+t:[["Fresh Air",["CO₂ scrubbers are keeping cabin air clean and safe.","Keep nominal scrubber flow and compare sensors between modules."]],["Caution: CO₂ Rising",["Increase cabin fan airflow between modules.","Inspect the CO₂ scrubber and desiccant beds.","Pause heavy exercise."]],["DANGER: High CO₂",["Turn on backup CO₂ scrubbers immediately.","Move crew to a ventilated module and clear the highest-CO₂ module.","Watch for headache, dizziness or drowsiness."]]]},
+{id:"o2",name:"OXYGEN",info:"Percentage of breathable oxygen in the cabin air (nominal ~21%). Too little causes hypoxia; too much (>23.5%) creates a severe fire hazard.",unit:"%",vals:[21.0,23.3,23.9],fmt:v=>v.toFixed(1),sc:[17,26,[[17,19.5,2],[19.5,20,1],[20,23.01,0],[23.01,23.51,1],[23.51,26,2]]],rng:"Safe 20.0–23.0% (diluent ≥30%). Caution 19.5–19.9 or 23.1–23.5. Danger <19.5 or >23.5.",x:v=>"ppO₂ "+(v*1.013).toFixed(1)+" kPa",
+t:[["Breathable & Safe",["Oxygen levels match normal Earth sea-level air.","Keep oxygen generation and nitrogen mixing on automatic."]],["Caution: Oxygen Imbalance",["If low, check the oxygen generator.","If high, add nitrogen and avoid electrical sparks."]],["DANGER: Critical Oxygen",["If below 19.5%: open the emergency oxygen reserve tanks.","If above 23.5%: extreme fire risk. Shut down non-essential power and ventilate."]]]},
+{id:"suit",name:"EVA SUIT PRESSURE (EMU)",info:"Internal air pressure inside the spacesuit during a spacewalk (nominal 29.6 kPa / 4.3 psia at 100% O₂). Prevents decompression sickness and hypoxia; drops indicate a suit leak.",unit:"kPa",vals:[29.6,28.0,25.5],fmt:v=>v.toFixed(1),sc:[20,35,[[20,26.5,2],[26.5,28.5,1],[28.5,31.01,0],[31.01,35,1]]],rng:"Nominal 29.6 kPa (4.3 psia) at 100% pure O₂. Caution 26.5–28.4 or >31.0. Danger <26.5 kPa.",x:()=>"100% O₂ · Hardware SOP regulated (Gernhardt 2013)",
+t:[["EMU Pressure Nominal",["Maintain suit pressure and the approved EVA monitoring schedule."]],["Caution: Pressure Drift",["Verify suit pressure sensors and prepare an orderly EVA return.","Monitor ECG, HR, ppCO₂ and metabolic rate continuously."]],["DANGER: Suit Depressurization",["Abort EVA and repressurize immediately.","Hypoxia and decompression sickness are prevented by 4.3 psia hardware pressure regulation, not SpO₂ measurement in the suit.","Notify Mission Control and execute the suit leak emergency procedure."]]]},
+{id:"cr",name:"CABIN RADIATION",info:"Ambient radiation level inside the spacecraft hull, comparing internal vs. external sensors to verify hull shielding effectiveness.",unit:"mSv/h",vals:[0.03,0.12,1.35],fmt:v=>v.toFixed(2),sc:SR,rng:"Safe ≤0.04 mSv/h. Caution 0.05–0.50. Danger >0.50 (shelter at >1.0).",x:(v,p,telemetry)=>{const ext=telemetry?.evaRad??Math.max(0.2,v*6.5);return "Outside "+ext+" mSv/h · hull shielding "+Math.max(0,Math.round((1-v/ext)*100))+"%"},
+t:[["Shielded & Safe",["The hull is blocking space radiation effectively.","Keep personal dosimeters worn and log the cumulative dose."]],["Caution: Elevated Radiation",["Check solar storm updates with Mission Control.","Keep personal radiation badges active."]],["DANGER: Radiation Alert",["Switch dosimeters to FAST mode (20 s).","0.50–1.0 mSv/h: suspend work in lightly shielded modules.","Above 1.0 mSv/h: move ALL crew into the shielded central core shelter until levels drop below 0.10 mSv/h."]]]}];
+
+function Win({t,s,help,children,cls=""}){return <section className={"bv "+cls}><div className={"tb "+(s?"s":"")}><span className="cs"/><div className="flex-1 min-w-0 flex items-center gap-1"><span className="truncate">{t}</span>{help&&<HelpTip title={t} text={help}/>}</div><span className="cs"/><span className="cs"/></div><div className="p-2">{children}</div></section>}
+function HelpTip({title,text}){
+ const[open,setOpen]=useState(false);
+ const close=e=>{e.stopPropagation();setOpen(false)};
+ return <><button type="button" aria-label={"Show help for "+title} className="bv px-1 ml-1 mono text-[10px] font-bold" onClick={e=>{e.preventDefault();e.stopPropagation();setOpen(true)}}>[?]</button>{open&&<div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title} onClick={e=>{if(e.target===e.currentTarget)close(e)}}><div className="bv w-full max-w-xl p-2" onClick={e=>e.stopPropagation()}><div className="tb"><span className="cs"/><span className="flex-1 min-w-0 font-bold truncate">{title}</span><span className="cs"/></div><div className="sheet sk p-3 whitespace-normal text-sm">{text}<div className="text-right mt-3"><button type="button" className="bv px-3 py-1 font-bold" onClick={close}>[CLOSE]</button></div></div></div></div>}</>
+}
+function Meter({v,sc,h=10,lab}){
+ const [mn,mx,Z,sq]=sc,P=x=>{const t=Math.max(0,Math.min(1,(x-mn)/(mx-mn)));return (sq?Math.sqrt(t):t)*100};
+ return <div><div className="relative" style={{height:h+9}}>
+  <div className="absolute inset-x-0 bottom-0 flex sk" style={{height:h+4}}>{Z.map(([a,b,l],i)=><div key={i} style={{width:(P(b)-P(a))+"%",background:C[l]}}/>)}</div>
+  <div className="absolute" style={{left:P(v)+"%",top:0,transform:"translateX(-50%)",width:0,height:0,borderLeft:"5px solid transparent",borderRight:"5px solid transparent",borderTop:"9px solid #000"}}/>
+  <div className="absolute" style={{left:P(v)+"%",bottom:0,height:h+4,width:3,background:"#000",transform:"translateX(-50%)"}}/></div>
+  {lab&&<div className="flex justify-between mono text-[10px]"><span>{mn}</span><span>SAFE / CAUTION / DANGER</span><span>{mx}</span></div>}</div>}
+
+function Body({rows,sel,pick}){
+ const L=[["spo2","LUNGS / SpO₂"],["hr","HEART"],["temp","CORE THERMAL"]],R=[["sleep","EYES"],["glu","METABOLIC / IMMUNE"]];
+ const Bt=([id,lab])=>{const r=rows.find(q=>q.id===id);return <button key={id} onClick={()=>pick(id)} className={"bv p-1 text-left w-full "+(sel===id?"sk":"")}><div className="flex items-center gap-1 text-[11px] font-bold"><i className={"led "+(r.l?"bl":"")} style={{background:C[r.l]}}/>{lab}</div><div className="mono text-xs">{r.fmt(r.val)} {r.unit}</div></button>};
+ const N=[["spo2",60,20],["sleep",60,33],["hr",52,80],["glu",68,102],["temp",60,124]];
+ return <div className="sheet sk p-2 grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
+  <div className="grid gap-5">{L.map(Bt)}</div>
+  <svg viewBox="0 0 120 240" width="104"><g fill="#d4d4d8" stroke="#334155" strokeWidth="1.5"><circle cx="60" cy="28" r="20"/><rect x="34" y="52" width="52" height="86" rx="18"/><rect x="14" y="56" width="16" height="82" rx="8"/><rect x="90" y="56" width="16" height="82" rx="8"/><rect x="36" y="140" width="22" height="94" rx="10"/><rect x="62" y="140" width="22" height="94" rx="10"/></g>
+   {N.map(([id,x,y])=>{const r=rows.find(q=>q.id===id);return <rect key={id} x={x-5} y={y-5} width="10" height="10" fill={C[r.l]} stroke="#000" strokeWidth="1.5" className={r.l?"bl":""} style={{cursor:"pointer"}} onClick={()=>pick(id)}/>})}</svg>
+  <div className="grid gap-5">{R.map(Bt)}</div></div>}
+
+function Trend({rows}){
+ const S=[["hr","#38bdf8","Heart rate"],["glu","#a78bfa","Glucose"],["temp","#f472b6","Body temp"],["sleep","#2dd4bf","Sleep"],["bp","#fb923c","Systolic BP"]];
+ const X=d=>34+(d-1)*(350/13),Y=q=>10+(150-Math.max(50,Math.min(150,q)))*1.3;
+ return <div className="scr sk p-1"><svg viewBox="0 0 400 172" className="w-full">
+  {[50,100,150].map(g=><g key={g}><line x1="34" x2="384" y1={Y(g)} y2={Y(g)} stroke={g===100?"#94a3b8":"#334155"} strokeDasharray={g===100?"5 3":"0"}/><text x="2" y={Y(g)+3} fontSize="9" fill="#94a3b8" className="mono">{g}%</text></g>)}
+  {S.map(([id,c],k)=>{const r=rows.find(x=>x.id===id),b=num(r.vals[0]);
+   return <polyline key={id} fill="none" stroke={c} strokeWidth="1.8" points={Array.from({length:14},(_,i)=>{const d=i+1;return X(d)+","+Y(d<14?100*(1+0.03*Math.sin(d*1.7+k*2)):num(r.val)/b*100)}).join(" ")}/>})}
+  {[1,7,14].map(d=><text key={d} x={X(d)} y="168" fontSize="9" fill="#94a3b8" textAnchor="middle" className="mono">DAY {d}</text>)}</svg>
+  <div className="flex flex-wrap gap-x-3 text-[11px] mono">{S.map(([id,c,l])=><span key={id}><i className="led" style={{background:c}}/> {l}</span>)}<span>- - baseline</span></div></div>}
+
+function Health({rows,sel,setSel,crew}){
+ const [pv,setPv]=useState(null);
+ const cur=rows.find(r=>r.id===sel),sh=pv===null?cur.l:pv,br=cur.br?cur.br(cur.val):null;
+ const cumVal=crew.telemetry.cum??41;
+ const steps=cur.P[sh].filter(s=>sh!==cur.l||!/^[ab]\|/.test(s)||s[0]===br).map(s=>s.replace(/^[ab]\|/,""));
+ const pick=id=>{setSel(id);setPv(null)},cnt=[0,1,2].map(i=>rows.filter(r=>r.l===i).length);
+ return <div className="grid gap-3 lg:grid-cols-[45fr_55fr] items-start">
+  <Win t="TELEMETRY & TRENDS"><div className="grid gap-3">
+   <Win s t="ANATOMICAL SENSOR MAP"><Body rows={rows} sel={sel} pick={pick}/></Win>
+   <Win s t="HISTORICAL TREND MONITOR"><Trend rows={rows}/><div className="text-[11px] mt-1">Mission days vs. pre-flight baseline (100%).</div></Win></div></Win>
+  <Win t="PHYSIOLOGICAL VARIABLES & PROTOCOLS"><div className="grid gap-3">
+   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+    {rows.map(r=><div key={r.id} role="button" tabIndex="0" onClick={e=>{if(!e.target.closest("button"))pick(r.id)}} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")pick(r.id)}} className={"bv p-1.5 text-left "+(sel===r.id?"sk":"")}>
+     <div className="flex justify-between items-center gap-1 text-[11px] font-bold"><div className="flex items-center gap-1 min-w-0"><span className="truncate">{r.name}</span><HelpTip title={r.name} text={r.info}/></div><i className={"led "+(r.l?"bl":"")} style={{background:C[r.l]}}/></div>
+     <div className="scr sk px-1 my-1 mono text-xl font-bold leading-tight" style={{color:CB[r.l]}}>{r.fmt(r.val)}<span className="text-[10px] text-slate-400"> {r.unit}</span></div>
+     <Meter v={num(r.val)} sc={r.sc} h={6}/></div>)}
+    <div className="scr sk p-1.5 mono text-[11px]"><div className="text-slate-400">STATUS COUNT</div>{[0,1,2].map(i=><div key={i}><i className="led" style={{background:C[i]}}/> {HT[i]} {cnt[i]}</div>)}</div></div>
+   <Win s t="SELECTED VARIABLE PROTOCOL"><div className="sheet sk p-3">
+    <div className="flex flex-wrap justify-between gap-2"><div className="min-w-0 flex-1"><div className="text-lg font-bold flex items-center gap-1">{cur.name}<HelpTip title={cur.name} text={cur.info}/></div><div className="text-xs">Target: {cur.rng}</div><div className="mono text-xs mt-1">Eq: {cur.eq}</div></div>
+     <div className="scr sk px-3 py-1 mono text-right" style={{color:CB[cur.l]}}><div className="text-3xl font-bold leading-none">{cur.fmt(cur.val)}</div><div className="text-xs">{cur.unit}</div></div></div>
+    <div className="mt-2 px-2 py-1 font-bold text-white mono" style={{background:C[cur.l]}}>{TAG[cur.l]}</div>
+    <div className="mono text-xs mt-2">{cur.sub(cur.val,0,crew)}</div>
+    {cur.cum&&<div className="mt-1"><div className="h-3 scr sk"><div className="h-full" style={{width:Math.min(100,cumVal/250*100)+"%",background:C[cur.l]}}/></div><div className="mono text-[10px]">Cumulative {cumVal} / 250 mSv short-term · 600 mSv career</div></div>}
+    <div className="flex gap-1 mt-3">{[0,1,2].map(i=><button key={i} onClick={()=>setPv(i===cur.l?null:i)} className={"bv flex-1 py-1 text-xs font-bold "+(sh===i?"sk":"")}><i className="led" style={{background:C[i]}}/> {LV[i]}{i===cur.l?" (LIVE)":""}</button>)}</div>
+    <div className="font-bold text-sm mt-3">{sh===cur.l?"ACTIVE PROTOCOL":"PREVIEW: "+LV[sh]+" PROTOCOL"}</div>
+    <ol className="list-decimal pl-5 mt-1 space-y-1.5 text-sm">{steps.map((s,i)=><li key={i}>{s}</li>)}</ol>
+    <div className="mt-3 p-2 text-sm" style={{border:"2px solid "+C[2]}}><b className="mono" style={{color:C[2]}}>[RED FLAGS]</b> {cur.esc}</div></div></Win>
+  </div></Win></div>}
+
+function Habitat({rows,telemetry}){
+ return <div className="grid gap-3 sm:grid-cols-2 items-start">{rows.map(r=>{const [ti,st]=r.t[r.l];return <Win key={r.id} t={r.name} help={r.info}>
+  <div className="scr sk px-3 py-2 flex items-end justify-between"><div className="mono font-bold text-5xl leading-none" style={{color:CB[r.l]}}>{r.fmt(r.val)}<span className="text-lg text-slate-400"> {r.unit}</span></div><div className="mono text-xs text-right" style={{color:CB[r.l]}}>{r.x(r.val,r.p,telemetry)}</div></div>
+  <div className="my-2"><Meter v={r.val} sc={r.sc} h={12} lab/></div>
+  <div className="sheet sk p-3"><div className="px-2 py-1 font-bold text-white mono" style={{background:C[r.l]}}>{HT[r.l]} {ti}</div>
+   <div className="font-bold text-sm mt-2">OPERATIONAL PROTOCOL</div>
+   <ol className="list-decimal pl-5 mt-1 space-y-1 text-sm">{st.map((s,i)=><li key={i}>{s}</li>)}</ol>
+   <div className="mono text-[11px] mt-2">{r.rng}</div></div></Win>})}</div>}
+
+const DEFAULT_TELEMETRY={glu:88,bp:[116,76],hr:68,spo2:98,rad:0.03,evaRad:0.20,sleep:7.6,temp:36.8,cum:41,ct:22.4,co2:1.9,o2:21,suit:29.6,cr:0.03};
+const calcBMI=(weight,heightCm)=>(weight/Math.pow(heightCm/100,2)).toFixed(1);
+const makeCrew=(id,name,role,age,weight,sex="Male",height=178,delta=0)=>({id,name,role,age,weight,sex,height,telemetry:{...DEFAULT_TELEMETRY,hr:DEFAULT_TELEMETRY.hr+delta,glu:DEFAULT_TELEMETRY.glu+delta,spo2:98,rad:DEFAULT_TELEMETRY.rad}});
+const defaultCrewProfiles=()=>[
+ makeCrew("cmd-01","Commander","Command / Flight Lead",42,72.0,"Male",178),
+ makeCrew("eng-02","Flight Engineer","Systems / EVA Support",36,78.5,"Female",172,4),
+ makeCrew("ms-03","Mission Specialist","Science / Payload",31,69.0,"Male",165,-2)
+];
+const loadCrewProfiles=()=>{
+ try{
+  const saved=JSON.parse(localStorage.getItem("egle_crew_db")||"null");
+  if(Array.isArray(saved)&&saved.length)return saved.map((c,i)=>({...c,id:String(c.id||("crew-"+i)),name:String(c.name||"Crew Member"),role:String(c.role||"Mission Specialist"),age:Number(c.age)||30,weight:Number(c.weight)||70,sex:c.sex==="Female"?"Female":"Male",height:Number(c.height)||[178,172,165][i]||175,telemetry:{...DEFAULT_TELEMETRY,...(c.telemetry||{})}}));
+ }catch(e){console.warn("Invalid egle_crew_db; using default crew",e)}
+ return defaultCrewProfiles();
+};
+
+function ProfileCreator({onClose,onCreate}){
+ const[form,setForm]=useState({name:"",role:"",age:"",weight:"",sex:"Male",height:""});
+ const set=(k,v)=>setForm(o=>({...o,[k]:v}));
+ return <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+  <section className="bv w-full max-w-lg p-2">
+   <div className="tb"><span className="cs"/><span className="flex-1">NEW CREW PROFILE / PERSONNEL ENTRY</span><span className="cs"/></div>
+   <form className="sheet sk p-3 grid gap-3" onSubmit={e=>{e.preventDefault();if(!form.name.trim()||!form.role.trim()||Number(form.age)<=0||Number(form.weight)<=0||Number(form.height)<120||Number(form.height)>230)return;onCreate({name:form.name.trim(),role:form.role.trim(),age:Number(form.age),weight:Number(form.weight),sex:form.sex,height:Number(form.height)});}}>
+    <label className="mono text-xs">NAME<input className="bv w-full p-1 mt-1" required value={form.name} onChange={e=>set("name",e.target.value)}/></label>
+    <label className="mono text-xs">ROLE / POSITION<input className="bv w-full p-1 mt-1" required value={form.role} onChange={e=>set("role",e.target.value)}/></label>
+    <div className="grid grid-cols-2 gap-2"><label className="mono text-xs">AGE (yr)<input className="bv w-full p-1 mt-1" required type="number" min="18" max="90" value={form.age} onChange={e=>set("age",e.target.value)}/></label>
+    <label className="mono text-xs">WEIGHT (kg)<input className="bv w-full p-1 mt-1" required type="number" min="35" max="200" step="0.1" value={form.weight} onChange={e=>set("weight",e.target.value)}/></label>
+    <label className="mono text-xs">SEX<select className="bv w-full p-1 mt-1" value={form.sex} onChange={e=>set("sex",e.target.value)}><option>Male</option><option>Female</option></select></label>
+    <label className="mono text-xs">HEIGHT (cm)<input className="bv w-full p-1 mt-1" required type="number" min="120" max="230" value={form.height} onChange={e=>set("height",e.target.value)}/></label></div>
+    <div className="flex gap-2"><button type="button" className="bv px-3 py-1 font-bold" onClick={onClose}>CANCEL</button><button type="submit" className="bv sk px-3 py-1 font-bold flex-1">ADD CREW MEMBER</button></div>
+   </form>
+  </section>
+ </div>
+}
+
+function CrewLogs({crew,onCrewWeight,onAutoPacket,downlink,linkOnline,onClearSent}){
+ const[renal,setRenal]=useState({weight:crew.weight,calcium:220,volume:2.4,ph:6.2,kcit:false});
+ const[psych,setPsych]=useState({cadence:"Every 3 Days",phq9:2,gad7:2,tension:2,depression:1,anger:1,fatigue:2,confusion:1,vigor:8,psqi:4,note:""});
+ const previous=useRef({renal:JSON.stringify(renal),psych:JSON.stringify(psych)});
+ useEffect(()=>{setRenal(o=>o.weight===crew.weight?o:{...o,weight:crew.weight})},[crew.weight]);
+ useEffect(()=>{
+  const renalSig=JSON.stringify(renal),psychSig=JSON.stringify(psych);
+  if(previous.current.renal!==renalSig)onAutoPacket({category:"Renal/Mass",summary:`${crew.name} · Mass ${renal.weight.toFixed(1)} kg · calcium ${renal.calcium.toFixed(0)} mg/24h · urine ${renal.volume.toFixed(2)} L/day · pH ${renal.ph.toFixed(1)} · KCit ${renal.kcit?"taken":"not taken"}`,payload:renal});
+  if(previous.current.psych!==psychSig)onAutoPacket({category:"Psychological Evaluation",summary:`${crew.name} · ${psych.cadence} · PHQ-9 ${psych.phq9} · GAD-7 ${psych.gad7} · PSQI ${psych.psqi} · journal updated`,payload:psych});
+  previous.current={renal:renalSig,psych:psychSig};
+ },[JSON.stringify(renal),JSON.stringify(psych)]);
+ const setR=(k,v)=>{setRenal(o=>({...o,[k]:v}));if(k==="weight")onCrewWeight(v)};
+ const setP=(k,v)=>setPsych(o=>({...o,[k]:v}));
+ const calciumLimit=crew.sex==="Female"?250:300;
+ const warning=renal.calcium>=calciumLimit||renal.volume<2,critical=renal.calcium>300;
+ const sentCount=downlink.filter(x=>x.status==="[AUTO-TRANSMITTED TO NASA MCC]").length;
+ const queuedCount=downlink.filter(x=>x.status==="[LOCAL NON-VOLATILE BUFFER]").length;
+ const input="bv w-full p-1 mt-1";
+ const poms=[["tension","Tension"],["depression","Depression"],["anger","Anger"],["fatigue","Fatigue"],["confusion","Confusion"],["vigor","Vigor"]];
+ return <div className="grid gap-3">
+  <Win t="DISCRETE BIOMEDICAL & RENAL LOG"><div className="sheet sk p-3">
+   <div className="mono text-xs mb-3">LOCAL PREVENTIVE GUIDANCE ONLY · QUEUED AUTOMATICALLY FOR NASA MEDICAL REVIEW</div>
+   <div className="grid gap-3 sm:grid-cols-5">
+    <label className="mono text-xs">BODY WEIGHT (kg)<HelpTip title="BODY WEIGHT" text="Tracks body mass (kg) and BMI to monitor muscle and bone loss in microgravity."/><input className={input} type="number" min="35" max="200" step="0.1" value={renal.weight} onChange={e=>setR("weight",Number(e.target.value))}/></label>
+    <label className="mono text-xs">URINARY CALCIUM (mg/24h)<HelpTip title="URINARY CALCIUM" text="Amount of calcium excreted in urine over 24 hours. Bones lose 1–1.5% mineral density per month in space; excess calcium in urine forms kidney stones."/><input className={input} type="number" min="0" step="1" value={renal.calcium} onChange={e=>setR("calcium",Number(e.target.value))}/></label>
+    <label className="mono text-xs">URINE VOLUME (L/day)<HelpTip title="URINE VOLUME" text="Total urine output in 24 hours (L/day). Low volume (<2.0 L) means dehydration and concentrated urine, increasing kidney stone risk."/><input className={input} type="number" min="0" step="0.1" value={renal.volume} onChange={e=>setR("volume",Number(e.target.value))}/></label>
+    <label className="mono text-xs">URINE pH (5.5–7.5)<HelpTip title="URINE pH" text="Acidity or alkalinity of urine (5.5–7.5). Abnormal pH promotes crystal and kidney stone formation."/><input className={input} type="number" min="0" max="14" step="0.1" value={renal.ph} onChange={e=>setR("ph",Number(e.target.value))}/></label>
+    <label className="mono text-xs flex items-center gap-2 sm:mt-5"><input type="checkbox" checked={renal.kcit} onChange={e=>setR("kcit",e.target.checked)}/> KCit 20 mEq/day<HelpTip title="KCit 20 mEq/day" text="Potassium Citrate supplement taken with dinner. Alkalinizes urine and prevents calcium kidney stones."/></label>
+   </div>
+   {(warning||critical)&&<div className="sk p-2 mt-3 mono text-xs" style={{borderColor:C[critical?2:1],color:C[critical?2:1]}}>
+    {critical?"CRITICAL RENAL RISK: urinary calcium >300 mg/24h. ":"PREVENTIVE RENAL ADVISORY: "}
+    Hydration &gt;2.5 L/day, ARED resistive exercise, and KCit per NASA OCHMO-MTB-003 / Whitson et al., 2009.
+   </div>}
+  </div></Win>
+  <Win t="3-DAY / WEEKLY PSYCHOLOGICAL QUESTIONNAIRE — RAW EARTH DOWNLINK"><div className="sheet sk p-3">
+   <div className="bv p-2 mono text-xs font-bold mb-3">[NO LOCAL EVALUATION: Behavioral responses are NOT graded onboard. Data streams automatically to NASA Behavioral Health & Psychologists on Earth]</div>
+   <div className="grid gap-3 sm:grid-cols-4">
+    <label className="mono text-xs">CADENCE<HelpTip title="CADENCE" text="Choose how often this ungraded questionnaire is sent to NASA behavioral health specialists for review."/><select className={input} value={psych.cadence} onChange={e=>setP("cadence",e.target.value)}><option>Every 3 Days</option><option>Weekly</option></select></label>
+    <label className="mono text-xs">PHQ-9 (0–27)<HelpTip title="PHQ-9 (0–27)" text="Patient Health Questionnaire-9: A standard 9-question clinical scale (0–27) used to track low mood and depressive symptoms over the past 2 weeks."/><input className={input} type="number" min="0" max="27" value={psych.phq9} onChange={e=>setP("phq9",Number(e.target.value))}/></label>
+    <label className="mono text-xs">GAD-7 (0–21)<HelpTip title="GAD-7 (0–21)" text="Generalized Anxiety Disorder-7: A 7-question scale (0–21) that measures anxiety, stress, and nervousness caused by confinement and workload."/><input className={input} type="number" min="0" max="21" value={psych.gad7} onChange={e=>setP("gad7",Number(e.target.value))}/></label>
+    <label className="mono text-xs">PSQI (0–21)<HelpTip title="PSQI (0–21)" text="Pittsburgh Sleep Quality Index: Measures how well the astronaut feels they slept (0–21; scores above 5 indicate fragmented or poor sleep)."/><input className={input} type="number" min="0" max="21" value={psych.psqi} onChange={e=>setP("psqi",Number(e.target.value))}/></label>
+    <div className="mono text-xs sm:col-span-4">POMS SUBSCALES (0–10)<HelpTip title="POMS Subscales" text="Profile of Mood States (0–10 each): Evaluates daily emotional balance and mental energy during long isolation."/></div>
+    {poms.map(([key,label])=><label key={key} className="mono text-xs">{label}<input className={input} type="number" min="0" max="10" value={psych[key]} onChange={e=>setP(key,Number(e.target.value))}/></label>)}
+    <label className="mono text-xs sm:col-span-4">CREW JOURNAL NOTES<HelpTip title="CREW JOURNAL NOTES" text="Optional free-text note for the astronaut to share context with NASA behavioral health specialists."/><textarea className={input} rows="3" value={psych.note} onChange={e=>setP("note",e.target.value)} placeholder="Raw note for Earth behavioral-health review"/></label>
+   </div>
+  </div></Win>
+  <Win t="AUTO-DOWNLINK LOG"><div className="sheet sk p-2 overflow-x-auto"><div className="bv p-2 mb-2 flex flex-wrap items-center gap-2 mono text-xs"><span style={{color:C[0]}}>TRANSMITTED TO NASA: {sentCount}</span><span style={{color:C[1]}}>QUEUED IN BUFFER (LOCKED): {queuedCount}</span><button className="bv px-2 py-1 mono text-xs font-bold" disabled={sentCount===0} onClick={onClearSent}>[CLEAR SENT CONSOLE]</button><span className="text-[10px]">Queued offline packets cannot be deleted until transmitted</span></div><table className="w-full mono text-xs"><thead><tr className="tb"><th className="text-left p-1">UTC</th><th className="text-left p-1">CATEGORY</th><th className="text-left p-1">PAYLOAD</th><th className="text-left p-1">STATUS</th></tr></thead><tbody>
+   {downlink.length?downlink.map((q,i)=><tr key={q.id||i} className="border-b border-slate-400"><td className="p-1 whitespace-nowrap">{q.timestamp}</td><td className="p-1 whitespace-nowrap">{q.category}</td><td className="p-1">{q.summary}</td><td className="p-1 whitespace-nowrap" style={{color:q.status==="[AUTO-TRANSMITTED TO NASA MCC]"?C[0]:C[1]}}>{q.status}</td></tr>):<tr><td className="p-2" colSpan="4">NO PACKETS IN AUTO-DOWNLINK LOG</td></tr>}
+  </tbody></table><div className="mono text-[11px] mt-2">Crew: {crew.name} · Link: {linkOnline?"ONLINE / AUTO-SYNC":"BLACKOUT / LOCAL NON-VOLATILE BUFFER"}</div></div></Win>
+ </div>
+}
+
+function App(){
+ const[crew,setCrew]=useState(loadCrewProfiles),[activeId,setActiveId]=useState(()=>loadCrewProfiles()[0].id),[tab,setTab]=useState(0),[sel,setSel]=useState("glu"),[now,setNow]=useState(new Date()),[showCreator,setShowCreator]=useState(false),[linkOnline,setLinkOnline]=useState(true),[busActive,setBusActive]=useState(false),[lastPacket,setLastPacket]=useState(null);
+ const[downlink,setDownlink]=useState(()=>{try{const saved=JSON.parse(localStorage.getItem("egle_auto_downlink")||"[]");return Array.isArray(saved)?saved.slice(0,50):[]}catch(e){console.warn("Invalid egle_auto_downlink; starting empty",e);return[]}});
+ const active=crew.find(c=>c.id===activeId)||crew[0],telemetry=active.telemetry;
+ const telemetrySig=JSON.stringify(telemetry),previousTelemetry=useRef(telemetrySig);
+ useEffect(()=>{const t=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(t)},[]);
+ useEffect(()=>{localStorage.setItem("egle_crew_db",JSON.stringify(crew));fetch("/api/crew",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(crew)}).catch(()=>{})},[crew]);
+ useEffect(()=>{const latest=downlink.slice(0,50);localStorage.setItem("egle_auto_downlink",JSON.stringify(latest));fetch("/api/downlink",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(latest)}).catch(()=>{})},[downlink]);
+ const packet=(entry)=>setDownlink(q=>[{id:Date.now()+Math.random(),timestamp:new Date().toISOString(),category:entry.category,summary:entry.summary,status:linkOnline?"[AUTO-TRANSMITTED TO NASA MCC]":"[LOCAL NON-VOLATILE BUFFER]",payload:entry.payload},...q].slice(0,50));
+ const clearSentDownlink=()=>{setDownlink(q=>q.filter(x=>x.status==="[LOCAL NON-VOLATILE BUFFER]"));fetch("/api/downlink/sent",{method:"DELETE"}).catch(()=>{})};
+ const flush=()=>setDownlink(q=>{const n=q.map(x=>x.status==="[LOCAL NON-VOLATILE BUFFER]"?{...x,status:"[AUTO-TRANSMITTED TO NASA MCC]"}:x);return n.some((x,i)=>x.status!==q[i].status)?n:q});
+ useEffect(()=>{if(linkOnline)flush()},[linkOnline]);
+ useEffect(()=>{const timer=setInterval(()=>{if(linkOnline)flush()},2000);return()=>clearInterval(timer)},[linkOnline]);
+ useEffect(()=>{if(previousTelemetry.current!==telemetrySig){const alerts=V.filter(v=>{const value=telemetry[v.id];return (v.lv?v.lv(value):zl(v.sc,value))>0}).map(v=>v.name).join(", ")||"none";packet({category:"PASSIVE TELEMETRY / ALERT",summary:`${active.name} · sensor state changed · alerts: ${alerts}`,payload:telemetry});}previousTelemetry.current=telemetrySig},[telemetrySig,activeId]);
+ useEffect(()=>{
+  const poll=async()=>{try{const response=await fetch("/api/state");if(!response.ok)return;const state=await response.json();const latest=Array.isArray(state.latest_telemetry)?state.latest_telemetry:[];if(!latest.length)return;setCrew(list=>list.map(c=>{const row=latest.find(item=>String(item.astronaut_id)===String(c.id));const patch=row&&(row.payload||{});return patch&&typeof patch==="object"&&Object.keys(patch).length?{...c,telemetry:{...c.telemetry,...patch}}:c}))}catch(e){}};
+  poll();const timer=setInterval(poll,2000);return()=>clearInterval(timer);
+ },[]);
+ useEffect(()=>{
+  const valid=(key,value)=>key in DEFAULT_TELEMETRY&&(Array.isArray(DEFAULT_TELEMETRY[key])?Array.isArray(value)&&value.length&&value.every(x=>typeof x==="number"):typeof value==="number");
+  const receive=raw=>{try{const p=typeof raw==="string"?JSON.parse(raw):raw,patch=p&&p.telemetry&&typeof p.telemetry==="object"?p.telemetry:p;if(!patch||typeof patch!=="object")return;const target=String(p.astronautId||p.targetId||activeId),keys=Object.keys(patch).filter(k=>valid(k,patch[k]));if(!keys.length)return;setCrew(list=>list.map(c=>c.id===target?{...c,telemetry:{...c.telemetry,...Object.fromEntries(keys.map(k=>[k,patch[k]]))}}:c));setBusActive(true);setLastPacket(new Date())}catch(e){console.warn("Invalid egle_telemetry_packet",e)}};
+  const bc=typeof BroadcastChannel!=="undefined"?new BroadcastChannel("egle_telemetry_bus"):null;if(bc)bc.addEventListener("message",e=>receive(e.data));
+  const storage=e=>{if(e.key==="egle_telemetry_packet"&&e.newValue)receive(e.newValue)};window.addEventListener("storage",storage);
+  return()=>{if(bc)bc.close();window.removeEventListener("storage",storage)};
+ },[activeId]);
+ const createProfile=data=>{const id="crew-"+Date.now(),newCrew={...makeCrew(id,data.name,data.role,data.age,data.weight,data.sex,data.height),telemetry:{...DEFAULT_TELEMETRY}};setCrew(list=>[...list,newCrew]);setActive(id);setShowCreator(false)};
+ const setActive=id=>{setActiveId(id);setSel("glu")};
+ const updateWeight=weight=>setCrew(list=>list.map(c=>c.id===activeId?{...c,weight:Number(weight)}:c));
+ const rows=V.map(v=>({...v,val:telemetry[v.id]??v.vals[0],l:v.lv?v.lv(telemetry[v.id]):zl(v.sc,telemetry[v.id]??v.vals[0])}));
+ const hr=H.map(v=>({...v,p:0,val:telemetry[v.id]??v.vals[0],l:zl(v.sc,telemetry[v.id]??v.vals[0])}));
+ const all=rows.concat(hr),w=Math.max(...all.map(r=>r.l)),n=all.filter(r=>r.l===w).length;
+ return <div className="max-w-7xl mx-auto p-2 sm:p-3">
+  <header className="bv p-1.5 mb-3 flex flex-wrap items-center justify-between gap-2">
+   <div className="flex items-center gap-2"><div className="font-bold text-lg">EGLE MONITOR</div><select className="bv mono text-xs p-1" value={active.id} onChange={e=>setActive(e.target.value)}>{crew.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><div className="scr sk px-2 mono text-[10px]">[{active.role.toUpperCase()} | SEX: {active.sex} | AGE: {active.age} yr | HEIGHT: {active.height} cm | MASS: {active.weight.toFixed(1)} kg | BMI: {calcBMI(active.weight,active.height)} kg/m²]</div><div className="scr sk px-2 mono text-xs">{now.toISOString().slice(11,19)} UTC</div></div>
+   <nav className="flex flex-wrap gap-1">{["1. ASTRONAUT HEALTH","2. HABITAT ENVIRONMENT","3. CREW LOGS & AUTO-DOWNLINK"].map((t,i)=><button key={t} onClick={()=>setTab(i)} className={"bv px-3 py-1 text-sm font-bold "+(tab===i?"sk":"")}>{t}</button>)}</nav>
+   <div className="flex items-center gap-1"><button onClick={()=>setShowCreator(true)} className="bv px-2 py-1 text-xs font-bold">[+ NEW PROFILE]</button><button onClick={()=>window.open("EGLE_TRANSMITTER.html","_blank")} className="bv px-2 py-1 text-xs font-bold">[OPEN SENSOR TRANSMITTER ↗]</button><button onClick={()=>setLinkOnline(v=>!v)} className="bv px-2 py-1 mono text-xs" style={{color:linkOnline?C[0]:C[1]}}>{linkOnline?"ONLINE (REAL-TIME AUTO-SYNC)":"BLACKOUT / MARS DELAY (AUTO-BUFFER)"}</button><span className="scr sk px-2 mono text-xs" style={{color:busActive?CB[0]:CB[1]}}>{busActive?"● TELEMETRY BUS ACTIVE":"● TELEMETRY BUS STANDBY"}</span></div>
+  </header>
+  {lastPacket&&<div className="mono text-[10px] mb-2 text-right">PASSIVE PACKET RECEIVED {lastPacket.toISOString()} UTC</div>}
+  <div className="scr sk px-3 py-1.5 mb-3 mono text-sm font-bold" role="status" style={{color:CB[w]}}>{HT[w]} {w===2?n+" variable"+(n>1?"s":"")+" outside safe limits. Emergency protocols active.":w===1?n+" variable"+(n>1?"s":"")+" drifting toward limits. Preventive protocols active.":"All "+all.length+" variables within range."}</div>
+  {tab===0?<Health rows={rows} sel={sel} setSel={setSel} crew={active}/>:tab===1?<Habitat rows={hr} telemetry={telemetry}/>:<CrewLogs key={active.id} crew={active} onCrewWeight={updateWeight} onAutoPacket={packet} downlink={downlink} linkOnline={linkOnline} onClearSent={clearSentDownlink}/>}
+  {showCreator&&<ProfileCreator onClose={()=>setShowCreator(false)} onCreate={createProfile}/>}
+ </div>}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script></body></html>

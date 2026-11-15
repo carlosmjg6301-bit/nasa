@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EGLE TELEMETRY TRANSMITTER — SENSOR BUS EMULATOR</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+:root{--desk:#263849;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--desk:#16222e}}
+:root[data-theme="dark"]{--desk:#16222e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--desk);color:#111;font-family:Helvetica,Arial,sans-serif}
+.bv{background:#c4c4c4;border:2px solid;border-color:#fff #4b5563 #4b5563 #fff}
+.sk{border:2px solid;border-color:#4b5563 #fff #fff #4b5563}
+.scr{background:#0f172a;color:#e2e8f0}.sheet{background:#f8fafc;color:#0f172a}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.tb{display:flex;align-items:center;gap:6px;padding:2px 6px;background:#007a87;color:#fff;font-weight:700;font-size:14px;border-bottom:2px solid #004b54}
+.tb.s{background:#64748b;border-color:#334155}
+.cs{width:13px;height:13px;background:#c4c4c4;border:1px solid;border-color:#fff #333 #333 #fff;flex:none}
+.led{display:inline-block;width:11px;height:11px;border:1px solid #000;flex:none}
+@keyframes b{50%{opacity:.25}}.bl{animation:b 1.2s steps(2) infinite}
+@media(prefers-reduced-motion:reduce){.bl{animation:none}}
+button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px dotted #000;outline-offset:1px}
+input[type="range"]{accent-color:#007a87}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useEffect,useRef,useState}=React;
+const C=["#16a34a","#d97706","#dc2626"];
+const DEFAULT_TELEMETRY={glu:88,sys:116,dia:76,hr:68,spo2:98,rad:0.03,evaRad:0.20,cum:41,sleep:7.6,temp:36.8,ct:22.4,co2:1.9,o2:21,suit:29.6,cr:0.03};
+const DEFAULT_CREW=[
+ {id:"cmd-01",name:"Commander",role:"Command / Flight Lead",sex:"Male",age:42,height:178,weight:72.0},
+ {id:"eng-02",name:"Flight Engineer",role:"Systems / EVA Support",sex:"Female",age:36,height:172,weight:78.5},
+ {id:"ms-03",name:"Mission Specialist",role:"Science / Payload",sex:"Male",age:31,height:165,weight:69.0}
+];
+const calcBMI=(weight,height)=>(weight/Math.pow(height/100,2)).toFixed(1);
+const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+const normalizeCrew=list=>list.map((c,i)=>({...c,id:String(c.id||("crew-"+i)),name:String(c.name||"Crew Member"),role:String(c.role||"Mission Specialist"),sex:c.sex==="Female"?"Female":"Male",age:Number(c.age)||30,height:Number(c.height)||175,weight:Number(c.weight)||70}));
+const loadCrew=()=>{
+ try{const saved=JSON.parse(localStorage.getItem("egle_crew_db")||"null");return Array.isArray(saved)&&saved.length?normalizeCrew(saved):DEFAULT_CREW}catch(e){console.warn("Invalid egle_crew_db; using default crew",e);return DEFAULT_CREW}
+};
+const SENSOR_GROUPS=[
+ {title:"WEARABLE BIOMEDICAL SENSORS — ASTROSKIN / CGM / MDU",items:[
+  ["glu","Blood Sugar","mg/dL",30,220,1],["sys","Systolic BP","mmHg",70,200,1],["dia","Diastolic BP","mmHg",40,130,1],["hr","Heart Rate","bpm",30,160,1],["spo2","Cabin Blood Oxygen","%",80,100,1],["rad","Personal Radiation","mSv/h",0.01,1.60,0.01],["cum","Cumulative Dose","mSv",0,600,1],["sleep","Sleep Hours","hrs",0,10,0.1],["temp","Body Temperature","°C",33,41,0.1]
+ ]},
+ {title:"HABITAT ECLSS & EVA SUIT TELEMETRY — CANS / HERA / EMU",items:[
+  ["ct","Cabin Temperature","°C",12,34,0.1],["co2","Carbon Dioxide","mmHg",0.5,4.5,0.1],["o2","Cabin Oxygen","%",17,26,0.1],["suit","EVA Suit Pressure","kPa",20,35,0.1],["cr","Cabin Radiation","mSv/h",0.01,1.60,0.01]
+ ]}
+];
+const SCENARIOS=[
+ ["1. NOMINAL BASELINE",{glu:88,sys:116,dia:76,hr:68,spo2:98,rad:0.03,cum:41,sleep:7.6,temp:36.8,ct:22.4,co2:1.9,o2:21,suit:29.6,cr:0.03}],
+ ["2. MILD HYPOXIA / ARTEMIS 8.2 PSI",{spo2:93,o2:19.7}],
+ ["3. EVA SUIT DEPRESSURIZATION LEAK",{suit:25.4,hr:136,sys:148,dia:94}],
+ ["4. SOLAR PARTICLE EVENT (SPE STORM)",{rad:1.35,evaRad:9.0,cr:1.35,cum:245}],
+ ["5. CO₂ SCRUBBER FAILURE & SLEEP DEBT",{co2:3.4,sleep:4.5,hr:114}]
+];
+function Win({title,children,s=false}){
+ return <section className="bv"><div className={"tb "+(s?"s":"")}><span className="cs"/><span className="flex-1 min-w-0 truncate">{title}</span><span className="cs"/><span className="cs"/></div><div className="p-2">{children}</div></section>
+}
+function SensorControl({item,value,onChange}){
+ const[id,label,unit,min,max,step]=item;
+ return <label className="sheet sk p-2 grid gap-1">
+  <div className="flex items-center justify-between gap-2"><span className="mono text-xs font-bold">{label}</span><span className="scr sk px-1 mono text-xs">{value} {unit}</span></div>
+  <input aria-label={label+" slider"} type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(id,Number(e.target.value))}/>
+  <div className="flex items-center gap-2"><input aria-label={label+" value"} className="bv w-24 p-1 mono text-xs" type="number" min={min} max={max} step={step} value={value} onChange={e=>onChange(id,Number(e.target.value))}/><span className="mono text-[10px]">{min} — {max} {unit}</span></div>
+ </label>
+}
+function App(){
+ const[crew,setCrew]=useState(loadCrew);
+ const[astronautId,setAstronautId]=useState(()=>loadCrew()[0].id);
+ const[telemetry,setTelemetry]=useState(DEFAULT_TELEMETRY);
+ const[autoStream,setAutoStream]=useState(true);
+ const[counter,setCounter]=useState(0);
+ const[lastPacket,setLastPacket]=useState(null);
+ const[streamStatus,setStreamStatus]=useState("BUS READY");
+ const bcRef=useRef(null),telemetryRef=useRef(telemetry),targetRef=useRef(astronautId);
+ const target=crew.find(c=>c.id===astronautId)||crew[0];
+ useEffect(()=>{telemetryRef.current=telemetry},[telemetry]);
+ useEffect(()=>{targetRef.current=astronautId},[astronautId]);
+ useEffect(()=>{
+  const sync=e=>{if(e.key!=="egle_crew_db"||!e.newValue)return;try{const next=normalizeCrew(JSON.parse(e.newValue));if(next.length){setCrew(next);setAstronautId(id=>next.some(c=>c.id===id)?id:next[0].id)}}catch(err){console.warn("Invalid crew database update",err)}};
+  window.addEventListener("storage",sync);
+  return()=>window.removeEventListener("storage",sync);
+ },[]);
+ useEffect(()=>{try{localStorage.setItem("egle_crew_db",JSON.stringify(crew))}catch(e){console.warn("Unable to persist crew database",e)}},[crew]);
+ useEffect(()=>{
+  if(typeof BroadcastChannel!=="undefined")bcRef.current=new BroadcastChannel("egle_telemetry_bus");
+  return()=>{if(bcRef.current)bcRef.current.close()};
+ },[]);
+ const transmit=(source=telemetryRef.current,noise=false)=>{
+  const t={...source};
+  if(noise){t.hr=clamp(Math.round(t.hr+(Math.random()*2-1)),30,160);t.glu=clamp(Math.round(t.glu+(Math.random()*2-1)),30,220);t.temp=Number(clamp(t.temp+(Math.random()*0.2-0.1),33,41).toFixed(1))}
+  const packet={astronautId:targetRef.current,_ts:Date.now(),telemetry:{glu:t.glu,bp:[t.sys,t.dia],hr:t.hr,spo2:t.spo2,rad:t.rad,evaRad:t.evaRad,sleep:t.sleep,temp:t.temp,cum:t.cum,ct:t.ct,co2:t.co2,o2:t.o2,suit:t.suit,cr:t.cr}};
+  try{
+   if(bcRef.current)bcRef.current.postMessage(packet);
+   localStorage.setItem("egle_telemetry_packet",JSON.stringify(packet));
+   fetch("/api/telemetry",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(packet)}).catch(()=>{});
+   setCounter(n=>n+1);setLastPacket(packet);setStreamStatus("PACKET TRANSMITTED / DUAL BUS");
+  }catch(e){console.warn("Telemetry transmission failed",e);setStreamStatus("BUS ERROR")}
+ };
+ useEffect(()=>{if(!autoStream)return;const timer=setInterval(()=>transmit(telemetryRef.current,true),1500);return()=>clearInterval(timer)},[autoStream]);
+ const updateSensor=(id,value)=>{
+  const item=SENSOR_GROUPS.flatMap(g=>g.items).find(x=>x[0]===id);
+  const next={...telemetryRef.current,[id]:clamp(value,item[3],item[4])};
+  telemetryRef.current=next;setTelemetry(next);transmit(next,false);
+ };
+ const applyScenario=patch=>{const next={...telemetryRef.current,...patch};telemetryRef.current=next;setTelemetry(next);transmit(next,false)};
+ return <div className="max-w-7xl mx-auto p-2 sm:p-3">
+  <header className="bv p-1.5 mb-3 flex flex-wrap items-center justify-between gap-2">
+   <div className="flex items-center gap-2 min-w-0"><div className="font-bold text-lg">EGLE TELEMETRY TRANSMITTER</div><select aria-label="Target astronaut" className="bv mono text-xs p-1" value={astronautId} onChange={e=>setAstronautId(e.target.value)}>{crew.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select><div className="scr sk px-2 mono text-[10px] truncate">[{target.role.toUpperCase()} | {target.sex} | {target.age} yr | {target.height} cm | {target.weight.toFixed(1)} kg | BMI {calcBMI(target.weight,target.height)} kg/m²]</div></div>
+   <button className="bv px-3 py-1 mono text-xs font-bold" style={{color:autoStream?C[0]:C[1]}} onClick={()=>setAutoStream(v=>!v)}>{autoStream?"[AUTO-STREAM: ON (LIVE BUS)]":"[MANUAL INJECTION ONLY]"}</button>
+  </header>
+  <div className="scr sk px-3 py-1.5 mb-3 mono text-sm font-bold flex justify-between"><span><i className={"led "+(autoStream?"bl":"")} style={{background:autoStream?C[0]:C[1]}}/> {streamStatus}</span><span>COUNTER {counter}</span></div>
+  <div className="grid gap-3 lg:grid-cols-2">
+   {SENSOR_GROUPS.map((group,i)=><Win key={group.title} title={group.title} s={i===1}><div className="grid gap-2 sm:grid-cols-2">{group.items.map(item=><SensorControl key={item[0]} item={item} value={telemetry[item[0]]} onChange={updateSensor}/>)}</div></Win>)}
+  </div>
+  <Win title="QUICK EMERGENCY SCENARIO INJECTORS" s><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{SCENARIOS.map(([label,patch])=><button key={label} className="bv px-2 py-2 text-xs font-bold text-left" onClick={()=>applyScenario(patch)}>{label}</button>)}</div></Win>
+  <Win title="LIVE TELEMETRY PACKET TERMINAL" s><div className="scr sk p-3 mono text-xs"><div className="grid gap-1 sm:grid-cols-3"><span>UTC: {lastPacket?new Date(lastPacket._ts).toISOString():"—"}</span><span>PACKETS: {counter}</span><span>TARGET: {astronautId}</span></div><pre className="whitespace-pre-wrap break-all mt-3 text-green-300">{lastPacket?JSON.stringify(lastPacket):"Waiting for telemetry packet..."}</pre></div></Win>
+ </div>
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
