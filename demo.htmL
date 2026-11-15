@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EGLE MONITOR — 1-Click Mission Briefing & Live Prototype</title>
+<style>
+  :root { --desk: #16222e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--desk); color: #111; font-family: Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 1560px; margin: 0 auto; padding: 10px; }
+  .bv { background: #c4c4c4; border: 2px solid; border-color: #fff #4b5563 #4b5563 #fff; }
+  .sk { border: 2px solid; border-color: #4b5563 #fff #fff #4b5563; }
+  .scr { background: #0f172a; color: #e2e8f0; }
+  .sheet { background: #f8fafc; color: #0f172a; }
+  .mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .tb { display: flex; align-items: center; gap: 6px; padding: 4px 8px; background: #007a87; color: #fff; font-weight: 700; font-size: 13px; border-bottom: 2px solid #004b54; }
+  .tb.s { background: #475569; border-color: #1e293b; }
+  .cs { width: 12px; height: 12px; background: #c4c4c4; border: 1px solid; border-color: #fff #333 #333 #fff; flex: none; }
+  button, a.btn { font-family: inherit; cursor: pointer; text-decoration: none; color: #111; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; font-weight: 700; }
+  button:hover, a.btn:hover { filter: brightness(1.04); }
+  .header-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; margin-bottom: 10px; }
+  .split-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; margin-bottom: 12px; }
+  @media (max-width: 1024px) { .split-grid { grid-template-columns: 1fr; } }
+  iframe { width: 100%; height: 760px; border: 0; background: #16222e; display: block; }
+  .docs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 10px; margin-top: 8px; }
+  .card { padding: 10px; font-size: 13px; line-height: 1.45; }
+  .card h3 { margin: 0 0 6px 0; font-size: 14px; color: #004b54; }
+  .badge { display: inline-block; padding: 2px 6px; background: #0f172a; color: #4ade80; font-size: 11px; }
+  ul { margin: 6px 0 0 0; padding-left: 18px; }
+  li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- TOP MISSION BAR -->
+  <header class="bv header-bar">
+    <div>
+      <div style="font-size:18px;font-weight:700;">EGLE MONITOR — UNIFIED MISSION PORTAL &amp; LIVE PROTOTYPE</div>
+      <div class="mono" style="font-size:11px;color:#1e293b;">TEAM X-BAND · NASA SPACE APPS CHALLENGE 2026 · AUTONOMOUS SPACEFLIGHT CLINICAL DECISION SUPPORT</div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <a class="bv btn" href="#live-console">[1. LIVE SPLIT-SCREEN DEMO ↓]</a>
+      <a class="bv btn" href="#mission-briefing">[2. READ TECHNICAL BRIEFING ↓]</a>
+      <a class="bv btn" href="index.html" target="_blank">[OPEN MONITOR FULLSCREEN ↗]</a>
+      <a class="bv btn" href="EGLE_TRANSMITTER.html" target="_blank">[OPEN TRANSMITTER FULLSCREEN ↗]</a>
+    </div>
+  </header>
+
+  <!-- QUICK JUDGE GUIDE BANNER -->
+  <div class="scr sk mono" style="padding:8px 12px;margin-bottom:10px;font-size:12px;color:#4ade80;">
+    [JUDGE 30-SECOND TEST GUIDE] Use the RIGHT panel (Sensor Bus Emulator) to trigger any emergency scenario (e.g., Solar Particle Event or EVA Suit Leak) or move sensor sliders. Watch the LEFT panel (Crew Clinical Monitor) detect the anomaly automatically, adapt thresholds to the astronaut's profile, and queue encrypted Earth downlinks without human intervention.
+  </div>
+
+  <!-- LIVE SPLIT-SCREEN INTERACTIVE PROTOTYPE -->
+  <section id="live-console" class="split-grid">
+    <div class="bv">
+      <div class="tb">
+        <span class="cs"></span>
+        <span style="flex:1;">NODE A: AUTONOMOUS CREW CLINICAL CONSOLE (index.html)</span>
+        <span class="cs"></span>
+      </div>
+      <div style="padding:4px;">
+        <iframe src="index.html" title="EGLE Monitor Clinical Console"></iframe>
+      </div>
+    </div>
+
+    <div class="bv">
+      <div class="tb s">
+        <span class="cs"></span>
+        <span style="flex:1;">NODE B: EXTERNAL SENSOR BUS EMULATOR (EGLE_TRANSMITTER.html)</span>
+        <span class="cs"></span>
+      </div>
+      <div style="padding:4px;">
+        <iframe src="EGLE_TRANSMITTER.html" title="EGLE Telemetry Transmitter"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPLETE TECHNICAL BRIEFING & RESEARCH DOCUMENTS -->
+  <section id="mission-briefing" class="bv" style="margin-bottom:14px;">
+    <div class="tb">
+      <span class="cs"></span>
+      <span style="flex:1;">COMPLETE MISSION BRIEFING, ARCHITECTURE &amp; VERIFIED NASA RESEARCH</span>
+      <span class="cs"></span>
+    </div>
+    <div style="padding:10px;">
+      <div class="sheet sk card" style="margin-bottom:10px;">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;">
+          <div>
+            <h3>1. Executive Summary &amp; Operational Problem</h3>
+            <p style="margin:4px 0;">
+              During deep-space missions to the Lunar Gateway or Mars, communication delays with Earth reach <strong>20 to 48 minutes each way</strong> and experience multi-day solar conjunction blackouts. <strong>EGLE MONITOR</strong> is an offline-first, deterministic clinical decision support system that centralizes crew biometrics, cabin life support (ECLSS), EVA suit pressure, and ionizing radiation dosimetry—translating complex aerospace telemetry into plain-English guidance and step-by-step emergency protocols for crew members without medical training.
+            </p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <a class="bv btn" href="docs/Egle_Monitor_Research_Report.pdf" target="_blank">[OPEN MAIN RESEARCH PDF ↗]</a>
+            <a class="bv btn" href="docs/Egle_Monitor_Referenced_Annex.pdf" target="_blank">[OPEN REFERENCED ANNEX PDF ↗]</a>
+            <a class="bv btn" href="README.md" target="_blank">[VIEW README.MD ↗]</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="docs-grid">
+        <div class="sheet sk card">
+          <h3>2. Decoupled 3-Tier Architecture</h3>
+          <span class="badge mono">ZERO ML HALLUCINATION RISK · RULE-BASED</span>
+          <ul>
+            <li><strong>External Sensor Bus (<code>EGLE_TRANSMITTER.html</code>):</strong> Emulates continuous wearable sensors (CGM, ECG/PPG, thermistors, Liulin silicon MDU dosimeters) and ECLSS/EMU hardware with 1.5s realistic noise and 5 emergency injectors.</li>
+            <li><strong>Central Mission Hub (<code>egle_mission_hub.py</code>):</strong> Zero-dependency Python 3 server + SQLite database (<code>egle_mission.db</code>) computing <strong>SHA-256 cryptographic hashes</strong> on every packet to detect radiation-induced memory bit-flips (SEUs).</li>
+            <li><strong>Autonomous Console (<code>index.html</code>):</strong> Passive receiver adapting thresholds to Sex, Age, Height, Mass, BMI, age-adjusted HR<sub>max</sub> (220 &minus; age), and sex-specific urinary calcium limits.</li>
+          </ul>
+        </div>
+
+        <div class="sheet sk card">
+          <h3>3. Verified NASA &amp; Clinical Thresholds</h3>
+          <span class="badge mono">NASA-STD-3001 · OCHMO · GERNHARDT · WHITSON</span>
+          <ul>
+            <li><strong>Cabin Atmosphere &amp; Hypoxia (<code>OCHMO-TB-003</code>):</strong> Normoxia at 101.3 kPa (P<sub>I</sub>O<sub>2</sub> = 149 mmHg, SpO<sub>2</sub> 97–100%); Artemis exploration habitat at 8.2 psia / 34% O<sub>2</sub> (SpO<sub>2</sub> 94–96%); critical hypoxia alert &lt; 90%.</li>
+            <li><strong>EVA Spacesuit (<code>Gernhardt et al., 2013</code>):</strong> EMU suit pressure at 29.6 kPa (4.3 psia, 100% O<sub>2</sub>). Hypoxia and DCS are prevented via hardware secondary oxygen pressure regulation rather than suit SpO<sub>2</sub>.</li>
+            <li><strong>Radiation Dosimetry (<code>NASA-STD-3001 Vol. 1</code>):</strong> Converts &mu;Gy/h to mSv/h via Q(LET); triggers 20s Fast Mode above 0.50 mSv/h and core shelter relocation above 1.0 mSv/h (600 mSv career cap).</li>
+            <li><strong>Renal &amp; Behavioral Health (<code>OCHMO-MTB-003</code>):</strong> Urinary calcium alerts (&gt;250 mg/24h female, &gt;300 mg/24h male) with Potassium Citrate (20 mEq/d); ungraded PHQ-9, GAD-7, PSQI &amp; POMS logs queued automatically for Earth psychologists.</li>
+          </ul>
+        </div>
+
+        <div class="sheet sk card">
+          <h3>4. Active vs. Passive Data &amp; DTN Downlink</h3>
+          <span class="badge mono">STORE-AND-FORWARD · AUTO-SYNC</span>
+          <ul>
+            <li><strong>Passive Telemetry:</strong> Continuous sensor streams evaluated locally in real time with <code>[?]</code> plain-English tooltips for non-physician crewmates.</li>
+            <li><strong>Active Crew Logs:</strong> Discrete 24h urine/mass logs and 3-day/weekly psychological check-ins (never graded locally onboard).</li>
+            <li><strong>Autonomous Buffering:</strong> During Earth signal blackouts, all packets lock into <code>[LOCAL NON-VOLATILE BUFFER]</code> (protected from console clearing) and flush automatically to NASA MCC once the link returns online.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
