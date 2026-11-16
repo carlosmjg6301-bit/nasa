@@ -1,0 +1,148 @@
+The 9 questions of the PHQ-9 (Patient Health Questionnaire-9) assess how often you have been bothered by the following problems over the last 2 weeks:
+The response options for each question are:
+• 0 = Never (or Not at all)
+• 1 = Several days
+• 2 = More than half the days
+• 3 = Nearly every day
+
+Total scores are calculated by summing the responses across all 9 items:
+• 0 – 4: Minimal or no depression (Monitor)
+• 5 – 9: Mild depression (Use clinical judgment / watchful waiting)
+• 10 – 14: Moderate depression (Consider treatment plan or counseling)
+• 15 – 19: Moderately severe depression (Warrants active treatment with psychotherapy and/or medication)
+• 20 – 27: Severe depression (Prompt clinical evaluation and safety planning)
+
+1. Little interest or pleasure in doing things.
+2. Feeling down, depressed, or hopeless.
+3. Trouble falling or staying asleep, or sleeping too much.
+4. Feeling tired or having little energy.
+5. Poor appetite or overeating.
+6. Feeling bad about yourself—or that you are a failure, or have let yourself or your family down.
+7. Trouble concentrating on things, such as reading the newspaper or watching television.
+8. Moving or speaking so slowly that other people could have noticed; or the opposite—being so restless or agitated that you have been moving around much more than usual.
+9. Thoughts that you would be better off dead, or of hurting yourself in some way.
+
+The GAD-7 (Generalized Anxiety Disorder-7) is a brief self-report questionnaire designed to detect symptoms of generalized anxiety and measure their severity.
+
+Key features
+
+• Questions: It consists of 7 items that assess how often you have been bothered by certain anxiety symptoms over the last 2 weeks.
+• Response options and scoring: Each question is scored from 0 to 3 points:
+	• Not at all = 0
+	• Several days = 1
+	• More than half the days = 2
+	• Nearly every day = 3
+• Total score: Ranges from 0 to 21 points.
+
+Interpretation of results
+
+• 0 – 4 points: Minimal or no anxiety
+• 5 – 9 points: Mild anxiety
+• 10 – 14 points: Moderate anxiety
+• 15 – 21 points: Moderate to severe anxiety
+
+1. Feeling nervous, uneasy or on edge.
+2. Not being able to stop worrying or not being able to control worry.
+3. Worrying too much about different things.
+4. Difficulty relaxing.
+5. Being so restless that it is difficult to sit quietly.
+6. Get upset or irritable easily.
+7. Feeling afraid as if something terrible could happen.
+
+The Pittsburgh Sleep Quality Index (PSQI) is a 19-item self-report questionnaire that evaluates sleep quality and sleep disturbances over a one-month time interval.
+
+Core Components
+
+The 19 self-rated items combine into seven component scores, each graded from 0 (no difficulty) to 3 (severe difficulty):
+• Subjective sleep quality
+• Sleep latency (how long it takes to fall asleep)
+• Sleep duration
+• Habitual sleep efficiency
+• Sleep disturbances
+• Use of sleeping medication
+• Daytime dysfunction
+
+Scoring
+
+• Global Score Range: 0 to 21 points (sum of the seven components).
+• Interpretation:
+	• A score of 0 to 5 indicates good sleep quality.
+	• A score greater than 5 indicates poor sleep quality and suggests significant sleep difficulties.
+
+The Pittsburgh Sleep Quality Index (PSQI) uses a 0–3 frequency and severity rating scale for its multiple-choice items, which are then grouped and calculated into seven component scores (each also scaled from 0 to 3).
+
+1. The Answer Scales (Items 5–9)
+
+While Items 1–4 ask for specific times and hours, Items 5–9 use a standardized 4-point scale:
+• Frequency Scale (Items 5a–5j, 6, and 7):
+	• 0: Not during the past month
+	• 1: Less than once a week
+	• 2: Once or twice a week
+	• 3: Three or more times a week
+• Enthusiasm Problem Scale (Item 8):
+	• 0: No problem at all
+	• 1: Only a very slight problem
+	• 2: Somewhat of a problem
+	• 3: A very big problem
+• Overall Sleep Quality Scale (Item 9):
+	• 0: Very good
+	• 1: Fairly good
+	• 2: Fairly bad
+	• 3: Very bad
+(Note: Different printings of the PSQI occasionally swap the numbering of the overall quality item between Question 6 and Question 9.)
+
+2. Component Score Mapping
+
+The 19 items map to the seven components as follows:
+
+Component	Source Items	How It Is Calculated
+1. Subjective Sleep Quality	Overall quality item	Directly uses the 0–3 rating from the overall sleep quality question.
+2. Sleep Latency	Item 2 + Item 5a	Converts minutes to fall asleep (Item 2) into a 0–3 score (?15 min = 0, 16–30 = 1, 31–60 = 2, >60 = 3), adds it to Item 5a, and rescales the sum (0–6) back to a 0–3 score.
+3. Sleep Duration	Item 4	Converts actual hours slept into a 0–3 score (>7 hrs = 0, 6–7 hrs = 1, 5–6 hrs = 2, <5 hrs = 3).
+4. Habitual Sleep Efficiency	Items 1, 3, and 4	Divides hours slept (Item 4) by total hours in bed (calculated from Item 1 bedtime to Item 3 wake time), multiplies by 100, and scores the percentage (>85% = 0, 75–84% = 1, 65–74% = 2, <65% = 3).
+5. Sleep Disturbances	Items 5b through 5j	Sums the 0–3 scores of all nine disturbance items (range 0–27) and converts the total to a 0–3 score (0 = 0, 1–9 = 1, 10–18 = 2, 19–27 = 3).
+6. Use of Sleeping Medication	Medication item	Directly uses the 0–3 frequency rating for taking sleep medicine.
+7. Daytime Dysfunction	Drowsiness + Enthusiasm items	Sums the 0–3 scores for daytime drowsiness and lack of enthusiasm (range 0–6) and rescales to a 0–3 score (0 = 0, 1–2 = 1, 3–4 = 2, 5–6 = 3).
+
+Once all seven components are calculated, they are added together to get the Global PSQI Score (0 to 21).
+
+The PVT (Psychomotor Vigilance Test) is a standard neuropsychological assessment that measures a person’s sustained attention, reaction speed, and level of alertness.
+
+What does the test involve?
+
+• Procedure: A millisecond counter appears randomly within a box on a screen (typically black).
+• Response: The participant must press a button or tap the screen as quickly as possible the moment the numbers begin to run.
+• Duration: The standard version lasts 10 minutes, though shorter 3-minute variants (such as the PVT-3) also exist.
+
+What it actually evaluates
+
+• Lapses in attention: It does not focus on average reaction speed, but rather on "lapses"—brief moments when the brain "disconnects" due to fatigue or drowsiness, even if the individual believes they are fully awake.
+• Instability of alertness: It detects how the performance of a fatigued person fluctuates from second to second, shifting between responding correctly and failing significantly.
+
+Key applications
+
+• Workplace fatigue and safety: It is used in high-risk industries—such as transportation, mining, aviation, or sectors involving rotating shifts—to assess accumulated fatigue or sleep debt in workers.
+• Sleep research: It is widely validated by institutions like NASA and Harvard for studying the effects of sleep deprivation, insomnia, and sleep apnea.
+• Health and pharmacology: It helps assess the impact of medications, alcohol, drugs, or neurological disorders on reaction time.
+
+Social behavior encompasses the set of actions, reactions, and dispositions of an individual directed toward other members of the same species, regulated by cultural, moral, and social norms. Social contact, meanwhile, comprises direct interactions—whether verbal, physical, or gestural—that facilitate communication, the exchange of information, and the strengthening of emotional bonds.
+
+Key characteristics
+
+• Norms and regulation: It is guided by implicit or explicit rules (such as courtesy, cooperation, and respect) that dictate how to interact within society.
+• Environmental influence: It is shaped by one’s family, cultural, and educational context, as well as the roles an individual assumes.
+• Impact on well-being: Regular social and physical contact reduces stress, strengthens the immune system, and is a key factor for mental health and longevity.
+
+Types of social interaction skills
+
+• Basic: Greeting others, listening, initiating a conversation, expressing thanks, and introducing oneself.
+• Advanced or complex: Empathy, assertiveness (knowing how to say "no" and set boundaries), negotiation, and conflict resolution.
+
+
+Salivary cortisol is a non-invasive biomarker that measures the free, biologically active fraction of cortisol (known as the "stress hormone") to assess the activity of the hypothalamic-pituitary-adrenal (HPA) axis.
+
+Utility and Types of Stress
+
+• Acute stress: Assessed by collecting samples in the afternoon or following a specific stressful event.
+• Chronic stress and circadian rhythm: Typically measured by collecting multiple samples throughout the day (for example, immediately upon waking—to observe the cortisol awakening response—and in the evening).
+• Clinical note: Medical guidelines indicate that a single, isolated morning cortisol test is not sufficient on its own to determine an overall stress level; therefore, results should be interpreted by a healthcare professional (such as an endocrinologist).

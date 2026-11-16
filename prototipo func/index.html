@@ -186,25 +186,61 @@ function ProfileCreator({onClose,onCreate}){
  </div>
 }
 
+function QuestionnaireMatrix({title,prompt,items,options,values,onChange}){
+ return <section className="sheet sk p-2">
+  <div className="mono font-bold text-sm">{title}</div>
+  {prompt&&<div className="mono text-xs mt-1 mb-2">{prompt}</div>}
+  <div className="grid gap-2">{items.map((item,index)=><fieldset key={item} className="bv p-2">
+   <legend className="mono text-xs font-bold px-1">{index+1}. {item}</legend>
+   <div className="grid gap-1 mt-1 sm:grid-cols-4">{options.map(([value,label])=><label key={value} className="flex items-center gap-1 mono text-[11px] cursor-pointer">
+    <input type="radio" name={title+"-"+index} value={value} checked={values[index]===value} onChange={()=>onChange(index,value)}/>{value} = {label}
+   </label>)}</div>
+  </fieldset>)}</div>
+ </section>
+}
+
 function CrewLogs({crew,onCrewWeight,onAutoPacket,downlink,linkOnline,onClearSent}){
  const[renal,setRenal]=useState({weight:crew.weight,calcium:220,volume:2.4,ph:6.2,kcit:false});
- const[psych,setPsych]=useState({cadence:"Every 3 Days",phq9:2,gad7:2,tension:2,depression:1,anger:1,fatigue:2,confusion:1,vigor:8,psqi:4,note:""});
- const previous=useRef({renal:JSON.stringify(renal),psych:JSON.stringify(psych)});
+ const[psych,setPsych]=useState({cadence:"Every 3 Days",phq9_items:Array(9).fill(null),gad7_items:Array(7).fill(null),psqi_items:Array(4).fill(null),poms_items:Array(6).fill(null),operationalContext:"",journalNote:""});
+ const[psychConfirmation,setPsychConfirmation]=useState("");
+ const previousRenal=useRef(JSON.stringify(renal));
  useEffect(()=>{setRenal(o=>o.weight===crew.weight?o:{...o,weight:crew.weight})},[crew.weight]);
  useEffect(()=>{
-  const renalSig=JSON.stringify(renal),psychSig=JSON.stringify(psych);
-  if(previous.current.renal!==renalSig)onAutoPacket({category:"Renal/Mass",summary:`${crew.name} · Mass ${renal.weight.toFixed(1)} kg · calcium ${renal.calcium.toFixed(0)} mg/24h · urine ${renal.volume.toFixed(2)} L/day · pH ${renal.ph.toFixed(1)} · KCit ${renal.kcit?"taken":"not taken"}`,payload:renal});
-  if(previous.current.psych!==psychSig)onAutoPacket({category:"Psychological Evaluation",summary:`${crew.name} · ${psych.cadence} · PHQ-9 ${psych.phq9} · GAD-7 ${psych.gad7} · PSQI ${psych.psqi} · journal updated`,payload:psych});
-  previous.current={renal:renalSig,psych:psychSig};
- },[JSON.stringify(renal),JSON.stringify(psych)]);
+  const renalSig=JSON.stringify(renal);
+  if(previousRenal.current!==renalSig)onAutoPacket({category:"Renal/Mass",summary:`${crew.name} · Mass ${renal.weight.toFixed(1)} kg · calcium ${renal.calcium.toFixed(0)} mg/24h · urine ${renal.volume.toFixed(2)} L/day · pH ${renal.ph.toFixed(1)} · KCit ${renal.kcit?"taken":"not taken"}`,payload:renal});
+  previousRenal.current=renalSig;
+ },[JSON.stringify(renal)]);
  const setR=(k,v)=>{setRenal(o=>({...o,[k]:v}));if(k==="weight")onCrewWeight(v)};
- const setP=(k,v)=>setPsych(o=>({...o,[k]:v}));
+ const setPsychItem=(group,index,value)=>{setPsych(o=>({...o,[group]:o[group].map((item,i)=>i===index?value:item)}));setPsychConfirmation("")};
+ const setPsychField=(key,value)=>{setPsych(o=>({...o,[key]:value}));setPsychConfirmation("")};
+ const answered=[...psych.phq9_items,...psych.gad7_items,...psych.psqi_items,...psych.poms_items].filter(value=>value!==null).length;
+ const questionnaireComplete=answered===26;
+ const sealQuestionnaire=()=>{
+  if(!questionnaireComplete)return;
+  const sum=items=>items.reduce((total,value)=>total+Number(value),0);
+  const payload={
+   cadence:psych.cadence,astronautId:crew.id,submittedAtUtc:new Date().toISOString(),
+   phq9_items:psych.phq9_items,gad7_items:psych.gad7_items,psqi_items:psych.psqi_items,poms_items:psych.poms_items,
+   operationalContext:psych.operationalContext,journalNote:psych.journalNote,
+   raw_downlink_metrics:{phq9_subtotal:sum(psych.phq9_items),gad7_subtotal:sum(psych.gad7_items),psqi_subtotal:sum(psych.psqi_items),poms_subtotals:psych.poms_items}
+  };
+  onAutoPacket({category:"Psychological Evaluation",summary:`${crew.name} · ${psych.cadence} Behavioral Questionnaire sealed (raw encrypted downlink for NASA Flight Psychology)`,payload});
+  setPsych({cadence:psych.cadence,phq9_items:Array(9).fill(null),gad7_items:Array(7).fill(null),psqi_items:Array(4).fill(null),poms_items:Array(6).fill(null),operationalContext:"",journalNote:""});
+  setPsychConfirmation("[PACKET SEALED & QUEUED FOR NASA BEHAVIORAL HEALTH]");
+ };
  const calciumLimit=crew.sex==="Female"?250:300;
  const warning=renal.calcium>=calciumLimit||renal.volume<2,critical=renal.calcium>300;
  const sentCount=downlink.filter(x=>x.status==="[AUTO-TRANSMITTED TO NASA MCC]").length;
  const queuedCount=downlink.filter(x=>x.status==="[LOCAL NON-VOLATILE BUFFER]").length;
  const input="bv w-full p-1 mt-1";
- const poms=[["tension","Tension"],["depression","Depression"],["anger","Anger"],["fatigue","Fatigue"],["confusion","Confusion"],["vigor","Vigor"]];
+ const frequencyOptions=[[0,"Not at all"],[1,"Several days"],[2,"More than half the days"],[3,"Nearly every day"]];
+ const sleepOptions=[[0,"Not at all"],[1,"Less than once a week"],[2,"Once or twice a week"],[3,"Three or more times a week"]];
+ const qualityOptions=[[0,"Very good"],[1,"Fairly good"],[2,"Fairly bad"],[3,"Very bad"]];
+ const pomsOptions=[[0,"Not at all"],[1,"A little"],[2,"Moderately"],[3,"Quite a bit"],[4,"Extremely"]];
+ const phq9=["Little interest or pleasure in doing things.","Feeling down, depressed, or hopeless.","Trouble falling or staying asleep, or sleeping too much.","Feeling tired or having little energy.","Poor appetite or overeating.","Feeling bad about yourself — or that you are a failure or have let yourself or your family down.","Trouble concentrating on things, such as reading or monitoring station consoles.","Moving or speaking so slowly that other crewmates could have noticed — or the opposite, being so fidgety or restless that you have been moving around a lot more than usual.","Thoughts that you would be better off dead, or of hurting yourself in some way."];
+ const gad7=["Feeling nervous, anxious, or on edge.","Not being able to stop or control worrying.","Worrying too much about different things.","Trouble relaxing.","Being so restless that it is hard to sit still.","Becoming easily annoyed or irritable.","Feeling afraid, as if something awful might happen."];
+ const psqi=["Subjective sleep quality over the past period.","Trouble falling asleep within 30 minutes.","Waking up in the middle of the night or early morning.","Trouble staying awake during mission tasks, meals, or crew activities."];
+ const poms=["Tension / On Edge","Sadness / Downhearted","Anger / Grouchy","Fatigue / Worn Out","Confusion / Bewildered","Vigor / Energetic"];
  return <div className="grid gap-3">
   <Win t="DISCRETE BIOMEDICAL & RENAL LOG"><div className="sheet sk p-3">
    <div className="mono text-xs mb-3">LOCAL PREVENTIVE GUIDANCE ONLY · QUEUED AUTOMATICALLY FOR NASA MEDICAL REVIEW</div>
@@ -220,17 +256,18 @@ function CrewLogs({crew,onCrewWeight,onAutoPacket,downlink,linkOnline,onClearSen
     Hydration &gt;2.5 L/day, ARED resistive exercise, and KCit per NASA OCHMO-MTB-003 / Whitson et al., 2009.
    </div>}
   </div></Win>
-  <Win t="3-DAY / WEEKLY PSYCHOLOGICAL QUESTIONNAIRE — RAW EARTH DOWNLINK"><div className="sheet sk p-3">
-   <div className="bv p-2 mono text-xs font-bold mb-3">[NO LOCAL EVALUATION: Behavioral responses are NOT graded onboard. Data streams automatically to NASA Behavioral Health & Psychologists on Earth]</div>
-   <div className="grid gap-3 sm:grid-cols-4">
-    <label className="mono text-xs">CADENCE<HelpTip title="CADENCE" text="Choose how often this ungraded questionnaire is sent to NASA behavioral health specialists for review."/><select className={input} value={psych.cadence} onChange={e=>setP("cadence",e.target.value)}><option>Every 3 Days</option><option>Weekly</option></select></label>
-    <label className="mono text-xs">PHQ-9 (0–27)<HelpTip title="PHQ-9 (0–27)" text="Patient Health Questionnaire-9: A standard 9-question clinical scale (0–27) used to track low mood and depressive symptoms over the past 2 weeks."/><input className={input} type="number" min="0" max="27" value={psych.phq9} onChange={e=>setP("phq9",Number(e.target.value))}/></label>
-    <label className="mono text-xs">GAD-7 (0–21)<HelpTip title="GAD-7 (0–21)" text="Generalized Anxiety Disorder-7: A 7-question scale (0–21) that measures anxiety, stress, and nervousness caused by confinement and workload."/><input className={input} type="number" min="0" max="21" value={psych.gad7} onChange={e=>setP("gad7",Number(e.target.value))}/></label>
-    <label className="mono text-xs">PSQI (0–21)<HelpTip title="PSQI (0–21)" text="Pittsburgh Sleep Quality Index: Measures how well the astronaut feels they slept (0–21; scores above 5 indicate fragmented or poor sleep)."/><input className={input} type="number" min="0" max="21" value={psych.psqi} onChange={e=>setP("psqi",Number(e.target.value))}/></label>
-    <div className="mono text-xs sm:col-span-4">POMS SUBSCALES (0–10)<HelpTip title="POMS Subscales" text="Profile of Mood States (0–10 each): Evaluates daily emotional balance and mental energy during long isolation."/></div>
-    {poms.map(([key,label])=><label key={key} className="mono text-xs">{label}<input className={input} type="number" min="0" max="10" value={psych[key]} onChange={e=>setP(key,Number(e.target.value))}/></label>)}
-    <label className="mono text-xs sm:col-span-4">CREW JOURNAL NOTES<HelpTip title="CREW JOURNAL NOTES" text="Optional free-text note for the astronaut to share context with NASA behavioral health specialists."/><textarea className={input} rows="3" value={psych.note} onChange={e=>setP("note",e.target.value)} placeholder="Raw note for Earth behavioral-health review"/></label>
-   </div>
+  <Win t="3-DAY / WEEKLY PSYCHOLOGICAL QUESTIONNAIRE — RAW EARTH DOWNLINK"><div className="sheet sk p-3 grid gap-3">
+   <div className="bv p-2 mono text-xs font-bold">[NO LOCAL EVALUATION: Behavioral responses are NOT graded onboard. Raw item-level responses are packaged and streamed automatically to NASA Behavioral Health & Psychologists on Earth]</div>
+   <label className="mono text-xs">CADENCE<HelpTip title="CADENCE" text="Choose how often this ungraded questionnaire is sent to NASA behavioral health specialists for review."/><select className={input} value={psych.cadence} onChange={e=>setPsychField("cadence",e.target.value)}><option>Every 3 Days</option><option>Weekly</option></select></label>
+   <QuestionnaireMatrix title="SECTION A — PHQ-9" prompt="Over the last 2 weeks, how often have you been bothered by any of the following problems?  0 = Not at all · 1 = Several days · 2 = More than half the days · 3 = Nearly every day" items={phq9} options={frequencyOptions} values={psych.phq9_items} onChange={(i,v)=>setPsychItem("phq9_items",i,v)}/>
+   <QuestionnaireMatrix title="SECTION B — GAD-7" prompt="Over the last 2 weeks, how often have you been bothered by the following problems?  0 = Not at all · 1 = Several days · 2 = More than half the days · 3 = Nearly every day" items={gad7} options={frequencyOptions} values={psych.gad7_items} onChange={(i,v)=>setPsychItem("gad7_items",i,v)}/>
+   <label className="mono text-xs">OPERATIONAL CONTEXT / FUNCTIONAL IMPACT (optional note on workload, sleep berth, or crew schedule)<textarea className={input} rows="2" value={psych.operationalContext} onChange={e=>setPsychField("operationalContext",e.target.value)}/></label>
+   <QuestionnaireMatrix title="SECTION C — SLEEP QUALITY CHECK" prompt="Please describe your recent sleep experience. Select one response for each item." items={psqi.slice(1)} options={sleepOptions} values={psych.psqi_items.slice(1)} onChange={(i,v)=>setPsychItem("psqi_items",i+1,v)}/>
+   <div className="sheet sk p-2"><div className="mono font-bold text-sm">SECTION C — SUBJECTIVE SLEEP QUALITY</div><div className="mono text-xs mt-1 mb-2">Select one response for item 1.</div><div className="grid gap-1 sm:grid-cols-4">{qualityOptions.map(([value,label])=><label key={value} className="flex items-center gap-1 mono text-[11px] cursor-pointer"><input type="radio" name="sleep-quality" value={value} checked={psych.psqi_items[0]===value} onChange={()=>setPsychItem("psqi_items",0,value)}/>{value} = {label}</label>)}</div></div>
+   <QuestionnaireMatrix title="SECTION D — POMS BRIEF STATE CHECK" prompt="How are you feeling right now?  0 = Not at all · 1 = A little · 2 = Moderately · 3 = Quite a bit · 4 = Extremely" items={poms} options={pomsOptions} values={psych.poms_items} onChange={(i,v)=>setPsychItem("poms_items",i,v)}/>
+   <label className="mono text-xs">CREW JOURNAL NOTES<HelpTip title="CREW JOURNAL NOTES" text="Optional free-text note for the astronaut to share context with NASA behavioral health specialists."/><textarea className={input} rows="3" value={psych.journalNote} onChange={e=>setPsychField("journalNote",e.target.value)} placeholder="Raw note for Earth behavioral-health review"/></label>
+   <div className="flex flex-wrap items-center gap-2"><span className="mono text-xs">Answered: {answered} / 26 items</span><button type="button" className="bv px-2 py-1 mono text-xs font-bold" disabled={!questionnaireComplete} onClick={sealQuestionnaire}>[SEAL &amp; TRANSMIT QUESTIONNAIRE TO NASA MCC]</button></div>
+   {psychConfirmation&&<div className="sheet sk p-2 mono text-xs">{psychConfirmation}</div>}
   </div></Win>
   <Win t="AUTO-DOWNLINK LOG"><div className="sheet sk p-2 overflow-x-auto"><div className="bv p-2 mb-2 flex flex-wrap items-center gap-2 mono text-xs"><span style={{color:C[0]}}>TRANSMITTED TO NASA: {sentCount}</span><span style={{color:C[1]}}>QUEUED IN BUFFER (LOCKED): {queuedCount}</span><button className="bv px-2 py-1 mono text-xs font-bold" disabled={sentCount===0} onClick={onClearSent}>[CLEAR SENT CONSOLE]</button><span className="text-[10px]">Queued offline packets cannot be deleted until transmitted</span></div><table className="w-full mono text-xs"><thead><tr className="tb"><th className="text-left p-1">UTC</th><th className="text-left p-1">CATEGORY</th><th className="text-left p-1">PAYLOAD</th><th className="text-left p-1">STATUS</th></tr></thead><tbody>
    {downlink.length?downlink.map((q,i)=><tr key={q.id||i} className="border-b border-slate-400"><td className="p-1 whitespace-nowrap">{q.timestamp}</td><td className="p-1 whitespace-nowrap">{q.category}</td><td className="p-1">{q.summary}</td><td className="p-1 whitespace-nowrap" style={{color:q.status==="[AUTO-TRANSMITTED TO NASA MCC]"?C[0]:C[1]}}>{q.status}</td></tr>):<tr><td className="p-2" colSpan="4">NO PACKETS IN AUTO-DOWNLINK LOG</td></tr>}
